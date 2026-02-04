@@ -1,0 +1,20 @@
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+anchor_escrow = "FircrADQ2wgGuvpm8qneNCfKM7o5zoHTWnDQxngpTQ3J"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+# "-- --nocapture" allows print statements to show in terminal
+# The fisrt "--" separates cargo args from test args
+test = "cargo test -- --nocapture" 
