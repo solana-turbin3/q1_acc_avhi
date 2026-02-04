@@ -14,6 +14,10 @@ use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 declare_id!("DhzyDgCmmQzVC4vEcj2zRGUyN8Mt5JynfdGLKkBcRGaX");
 
+pub const CONFIG_SEED: &[u8] = b"config";
+pub const WHITELIST_ENTRY_SEED: &[u8] = b"whitelist-entry";
+pub const EXTRA_ACCOUNT_METAS_SEED: &[u8] = b"extra-account-metas";
+
 #[program]
 pub mod whitelist_transfer_hook {
     use super::*;

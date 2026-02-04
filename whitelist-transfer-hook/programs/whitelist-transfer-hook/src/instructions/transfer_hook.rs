@@ -30,12 +30,12 @@ pub struct TransferHook<'info> {
     pub owner: UncheckedAccount<'info>,
     /// CHECK: ExtraAccountMetaList Account,
     #[account(
-        seeds = [b"extra-account-metas", mint.key().as_ref()],
+        seeds = [crate::EXTRA_ACCOUNT_METAS_SEED, mint.key().as_ref()],
         bump
     )]
     pub extra_account_meta_list: UncheckedAccount<'info>,
     #[account(
-        seeds = [b"whitelist-entry", source_token.owner.key().as_ref()],
+        seeds = [crate::WHITELIST_ENTRY_SEED, source_token.owner.key().as_ref()],
         bump = whitelist.bump,
     )]
     pub whitelist: Account<'info, Whitelist>,

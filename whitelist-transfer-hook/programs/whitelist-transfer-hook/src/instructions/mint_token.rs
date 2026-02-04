@@ -1,9 +1,15 @@
 use anchor_lang::{
     prelude::*,
+    solana_program::program::invoke,
     system_program::{create_account, CreateAccount},
 };
+use crate::error::ErrorCode;
 use anchor_spl::token_2022::{
-    spl_token_2022::{extension::ExtensionType, state::Mint as Token2022Mint},
+    spl_token_2022::{
+        extension::{transfer_hook::instruction::initialize as init_transfer_hook, ExtensionType},
+        instruction::initialize_mint2,
+        state::Mint as Token2022Mint,
+    },
     Token2022,
 };
 
@@ -25,7 +31,7 @@ impl<'info> TokenFactory<'info> {
         // Calculate the space needed for mint with TransferHook extension
         let extension_types = vec![ExtensionType::TransferHook];
         let space = ExtensionType::try_calculate_account_len::<Token2022Mint>(&extension_types)
-            .map_err(|_| error!(crate::error::ErrorCode::ExtensionInitializationFailed))?;
+            .map_err(|_| error!(ErrorCode::ExtensionInitializationFailed))?;
 
         msg!("Mint account space needed: {} bytes", space);
 
@@ -49,23 +55,19 @@ impl<'info> TokenFactory<'info> {
         msg!("Mint account created");
 
         // Initialize the TransferHook extension via CPI
-        let init_hook_ix =
-            anchor_spl::token_2022::spl_token_2022::extension::transfer_hook::instruction::initialize(
-                &self.token_program.key(),
-                &self.mint.key(),
-                Some(self.user.key()),
-                Some(crate::ID),
-            )?;
-
-        anchor_lang::solana_program::program::invoke(
-            &init_hook_ix,
-            &[self.mint.to_account_info()],
+        let init_hook_ix = init_transfer_hook(
+            &self.token_program.key(),
+            &self.mint.key(),
+            Some(self.user.key()),
+            Some(crate::ID),
         )?;
+
+        invoke(&init_hook_ix, &[self.mint.to_account_info()])?;
 
         msg!("Transfer hook extension initialized");
 
         // Initialize the base mint via CPI
-        let init_mint_ix = anchor_spl::token_2022::spl_token_2022::instruction::initialize_mint2(
+        let init_mint_ix = initialize_mint2(
             &self.token_program.key(),
             &self.mint.key(),
             &self.user.key(),
@@ -73,10 +75,7 @@ impl<'info> TokenFactory<'info> {
             decimals,
         )?;
 
-        anchor_lang::solana_program::program::invoke(
-            &init_mint_ix,
-            &[self.mint.to_account_info()],
-        )?;
+        invoke(&init_mint_ix, &[self.mint.to_account_info()])?;
 
         msg!("Mint initialized successfully");
         msg!("Mint address: {}", self.mint.key());

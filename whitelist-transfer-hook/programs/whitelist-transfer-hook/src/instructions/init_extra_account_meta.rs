@@ -15,7 +15,7 @@ pub struct InitializeExtraAccountMetaList<'info> {
     /// CHECK: ExtraAccountMetaList Account, must use these seeds
     #[account(
         mut,
-        seeds = [b"extra-account-metas", mint.key().as_ref()],
+        seeds = [crate::EXTRA_ACCOUNT_METAS_SEED, mint.key().as_ref()],
         bump,
 
     )]
@@ -42,7 +42,7 @@ impl<'info> InitializeExtraAccountMetaList<'info> {
         // Get the seeds for the PDA
         let mint_key = self.mint.key();
         let signer_seeds: &[&[&[u8]]] = &[&[
-            b"extra-account-metas",
+            crate::EXTRA_ACCOUNT_METAS_SEED,
             mint_key.as_ref(),
             &[bumps.extra_account_meta_list],
         ]];
@@ -81,7 +81,7 @@ impl<'info> InitializeExtraAccountMetaList<'info> {
             ExtraAccountMeta::new_with_seeds(
                 &[
                     Seed::Literal {
-                        bytes: b"whitelist-entry".to_vec(),
+                        bytes: crate::WHITELIST_ENTRY_SEED.to_vec(),
                     },
                     Seed::AccountKey {
                         index: 3, // Use owner's pubkey as seed

@@ -11,7 +11,7 @@ pub struct InitializeConfig<'info> {
         init,
         payer = admin,
         space = 8 + Config::INIT_SPACE,
-        seeds = [b"config"],
+        seeds = [crate::CONFIG_SEED],
         bump,
     )]
     pub config: Account<'info, Config>,

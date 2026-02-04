@@ -10,7 +10,7 @@ pub struct AddToWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(
-        seeds = [b"config"],
+        seeds = [crate::CONFIG_SEED],
         bump = config.bump,
         constraint = config.admin == admin.key() @ ErrorCode::Unauthorized,
     )]
@@ -19,7 +19,7 @@ pub struct AddToWhiteList<'info> {
         init,
         payer = admin,
         space = Whitelist::LEN,
-        seeds = [b"whitelist-entry", address.as_ref()],
+        seeds = [crate::WHITELIST_ENTRY_SEED, address.as_ref()],
         bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -32,7 +32,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(
-        seeds = [b"config"],
+        seeds = [crate::CONFIG_SEED],
         bump = config.bump,
         constraint = config.admin == admin.key() @ ErrorCode::Unauthorized,
     )]
@@ -40,7 +40,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(
         mut,
         close = admin,
-        seeds = [b"whitelist-entry", address.as_ref()],
+        seeds = [crate::WHITELIST_ENTRY_SEED, address.as_ref()],
         bump = whitelist_entry.bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
