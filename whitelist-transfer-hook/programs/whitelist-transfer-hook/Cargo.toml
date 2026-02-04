@@ -1,0 +1,28 @@
+[package]
+name = "whitelist-transfer-hook"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "whitelist_transfer_hook"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = { version = "0.32.1", features = ["interface-instructions"] }
+anchor-spl = "0.32.1"
+# Library for easy management of 8-byte discriminators
+spl-discriminator = "0.5.1"
+# Library defining a generic state interface to encode additional required accounts for an instruction, using Type-Length-Value structures
+spl-tlv-account-resolution = "0.11.1"
+# Library with helper to resolve additional accounts
+spl-transfer-hook-interface = "2.1.0"
+
