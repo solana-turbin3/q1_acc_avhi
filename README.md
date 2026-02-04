@@ -1,5 +1,3 @@
-# Q1_2026_Acc_Avhi
-
 ## Programs
 
 ### [Whitelist Transfer Hook](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/whitelist-transfer-hook)
