@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+use crate::constants::{CONFIG_SEED, WHITELIST_ENTRY_SEED};
 use crate::error::ErrorCode;
 use crate::state::config::Config;
 use crate::state::whitelist::Whitelist;
@@ -10,7 +11,7 @@ pub struct AddToWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(
-        seeds = [crate::CONFIG_SEED],
+        seeds = [CONFIG_SEED],
         bump = config.bump,
         constraint = config.admin == admin.key() @ ErrorCode::Unauthorized,
     )]
@@ -19,7 +20,7 @@ pub struct AddToWhiteList<'info> {
         init,
         payer = admin,
         space = Whitelist::LEN,
-        seeds = [crate::WHITELIST_ENTRY_SEED, address.as_ref()],
+        seeds = [WHITELIST_ENTRY_SEED, address.as_ref()],
         bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -32,7 +33,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
     #[account(
-        seeds = [crate::CONFIG_SEED],
+        seeds = [CONFIG_SEED],
         bump = config.bump,
         constraint = config.admin == admin.key() @ ErrorCode::Unauthorized,
     )]
@@ -40,7 +41,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(
         mut,
         close = admin,
-        seeds = [crate::WHITELIST_ENTRY_SEED, address.as_ref()],
+        seeds = [WHITELIST_ENTRY_SEED, address.as_ref()],
         bump = whitelist_entry.bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -48,11 +49,7 @@ pub struct RemoveFromWhiteList<'info> {
 }
 
 impl<'info> AddToWhiteList<'info> {
-    pub fn add_to_whitelist(
-        &mut self,
-        address: Pubkey,
-        bumps: &AddToWhiteListBumps,
-    ) -> Result<()> {
+    pub fn add_to_whitelist(&mut self, address: Pubkey, bumps: &AddToWhiteListBumps) -> Result<()> {
         self.whitelist_entry.set_inner(Whitelist {
             address,
             bump: bumps.whitelist_entry,

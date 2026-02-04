@@ -3,6 +3,7 @@
 
 use anchor_lang::prelude::*;
 
+mod constants;
 mod error;
 mod instructions;
 mod state;
@@ -13,10 +14,6 @@ use spl_discriminator::SplDiscriminate;
 use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 
 declare_id!("DhzyDgCmmQzVC4vEcj2zRGUyN8Mt5JynfdGLKkBcRGaX");
-
-pub const CONFIG_SEED: &[u8] = b"config";
-pub const WHITELIST_ENTRY_SEED: &[u8] = b"whitelist-entry";
-pub const EXTRA_ACCOUNT_METAS_SEED: &[u8] = b"extra-account-metas";
 
 #[program]
 pub mod whitelist_transfer_hook {
@@ -30,10 +27,7 @@ pub mod whitelist_transfer_hook {
         ctx.accounts.add_to_whitelist(address, &ctx.bumps)
     }
 
-    pub fn remove_from_whitelist(
-        ctx: Context<RemoveFromWhiteList>,
-        address: Pubkey,
-    ) -> Result<()> {
+    pub fn remove_from_whitelist(ctx: Context<RemoveFromWhiteList>, address: Pubkey) -> Result<()> {
         ctx.accounts.remove_from_whitelist(address)
     }
 

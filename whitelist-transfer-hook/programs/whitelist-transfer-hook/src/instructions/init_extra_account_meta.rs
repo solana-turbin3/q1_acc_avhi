@@ -1,3 +1,4 @@
+use crate::constants::{EXTRA_ACCOUNT_METAS_SEED, WHITELIST_ENTRY_SEED};
 use crate::error::ErrorCode;
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{create_account, CreateAccount};
@@ -15,7 +16,7 @@ pub struct InitializeExtraAccountMetaList<'info> {
     /// CHECK: ExtraAccountMetaList Account, must use these seeds
     #[account(
         mut,
-        seeds = [crate::EXTRA_ACCOUNT_METAS_SEED, mint.key().as_ref()],
+        seeds = [EXTRA_ACCOUNT_METAS_SEED, mint.key().as_ref()],
         bump,
 
     )]
@@ -42,7 +43,7 @@ impl<'info> InitializeExtraAccountMetaList<'info> {
         // Get the seeds for the PDA
         let mint_key = self.mint.key();
         let signer_seeds: &[&[&[u8]]] = &[&[
-            crate::EXTRA_ACCOUNT_METAS_SEED,
+            EXTRA_ACCOUNT_METAS_SEED,
             mint_key.as_ref(),
             &[bumps.extra_account_meta_list],
         ]];
@@ -81,7 +82,7 @@ impl<'info> InitializeExtraAccountMetaList<'info> {
             ExtraAccountMeta::new_with_seeds(
                 &[
                     Seed::Literal {
-                        bytes: crate::WHITELIST_ENTRY_SEED.to_vec(),
+                        bytes: WHITELIST_ENTRY_SEED.to_vec(),
                     },
                     Seed::AccountKey {
                         index: 3, // Use owner's pubkey as seed

@@ -1,9 +1,9 @@
+use crate::error::ErrorCode;
 use anchor_lang::{
     prelude::*,
     solana_program::program::invoke,
     system_program::{create_account, CreateAccount},
 };
-use crate::error::ErrorCode;
 use anchor_spl::token_2022::{
     spl_token_2022::{
         extension::{transfer_hook::instruction::initialize as init_transfer_hook, ExtensionType},
