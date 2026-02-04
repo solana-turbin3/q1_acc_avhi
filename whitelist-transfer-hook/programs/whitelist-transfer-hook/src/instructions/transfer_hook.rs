@@ -51,7 +51,7 @@ impl<'info> TransferHook<'info> {
         msg!("Source token owner: {}", self.source_token.owner);
         msg!("Destination token owner: {}", self.destination_token.owner);
 
-        if self.whitelist.authority == self.source_token.owner {
+        if self.whitelist.address == self.source_token.owner {
             msg!("Transfer allowed: The address is whitelisted");
         } else {
             panic!("TransferHook: Address is not whitelisted");

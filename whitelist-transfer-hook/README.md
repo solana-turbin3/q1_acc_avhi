@@ -33,12 +33,12 @@ A separate PDA account is created for each whitelisted address. This gives O(1) 
 ```rust
 #[account]
 pub struct Whitelist {
-    pub authority: Pubkey,
+    pub address: Pubkey,
     pub bump: u8,
 }
 ```
 
-- **authority**: The whitelisted public key.
+- **address**: The whitelisted public key.
 - **bump**: The bump seed used to derive this whitelist entry PDA.
 
 ---
@@ -76,7 +76,7 @@ Creates a new PDA account for the whitelisted address. Only the admin (verified 
 
 ```rust
 #[derive(Accounts)]
-#[instruction(authority: Pubkey)]
+#[instruction(address: Pubkey)]
 pub struct AddToWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -90,7 +90,7 @@ pub struct AddToWhiteList<'info> {
         init,
         payer = admin,
         space = Whitelist::LEN,
-        seeds = [b"whitelist-entry", authority.as_ref()],
+        seeds = [b"whitelist-entry", address.as_ref()],
         bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -108,7 +108,7 @@ Closes the whitelist entry PDA and refunds rent to the admin.
 
 ```rust
 #[derive(Accounts)]
-#[instruction(authority: Pubkey)]
+#[instruction(address: Pubkey)]
 pub struct RemoveFromWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -121,7 +121,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(
         mut,
         close = admin,
-        seeds = [b"whitelist-entry", authority.as_ref()],
+        seeds = [b"whitelist-entry", address.as_ref()],
         bump = whitelist_entry.bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -216,7 +216,7 @@ pub struct TransferHook<'info> {
 The validation logic:
 
 1. **Checks the transferring flag** on the source token account's TransferHookAccount extension to ensure this is being called during an actual transfer.
-2. **Verifies the whitelist PDA exists** and that `whitelist.authority == source_token.owner`. If the PDA doesn't exist or doesn't match, the transfer fails.
+2. **Verifies the whitelist PDA exists** and that `whitelist.address == source_token.owner`. If the PDA doesn't exist or doesn't match, the transfer fails.
 
 Since each whitelisted address has its own PDA, the lookup is O(1) — Token-2022 derives the PDA from the owner's pubkey and passes it in. If the account doesn't exist, the transaction fails automatically.
 

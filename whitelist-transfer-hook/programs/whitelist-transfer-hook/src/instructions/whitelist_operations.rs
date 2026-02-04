@@ -5,7 +5,7 @@ use crate::state::config::Config;
 use crate::state::whitelist::Whitelist;
 
 #[derive(Accounts)]
-#[instruction(authority: Pubkey)]
+#[instruction(address: Pubkey)]
 pub struct AddToWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -19,7 +19,7 @@ pub struct AddToWhiteList<'info> {
         init,
         payer = admin,
         space = Whitelist::LEN,
-        seeds = [b"whitelist-entry", authority.as_ref()],
+        seeds = [b"whitelist-entry", address.as_ref()],
         bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -27,7 +27,7 @@ pub struct AddToWhiteList<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(authority: Pubkey)]
+#[instruction(address: Pubkey)]
 pub struct RemoveFromWhiteList<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
@@ -40,7 +40,7 @@ pub struct RemoveFromWhiteList<'info> {
     #[account(
         mut,
         close = admin,
-        seeds = [b"whitelist-entry", authority.as_ref()],
+        seeds = [b"whitelist-entry", address.as_ref()],
         bump = whitelist_entry.bump
     )]
     pub whitelist_entry: Account<'info, Whitelist>,
@@ -50,22 +50,22 @@ pub struct RemoveFromWhiteList<'info> {
 impl<'info> AddToWhiteList<'info> {
     pub fn add_to_whitelist(
         &mut self,
-        authority: Pubkey,
+        address: Pubkey,
         bumps: &AddToWhiteListBumps,
     ) -> Result<()> {
         self.whitelist_entry.set_inner(Whitelist {
-            authority,
+            address,
             bump: bumps.whitelist_entry,
         });
 
-        msg!("Added {} to whitelist", authority);
+        msg!("Added {} to whitelist", address);
         Ok(())
     }
 }
 
 impl<'info> RemoveFromWhiteList<'info> {
-    pub fn remove_from_whitelist(&mut self, authority: Pubkey) -> Result<()> {
-        msg!("Remove {} from whitelist", authority);
+    pub fn remove_from_whitelist(&mut self, address: Pubkey) -> Result<()> {
+        msg!("Remove {} from whitelist", address);
         Ok(())
     }
 }

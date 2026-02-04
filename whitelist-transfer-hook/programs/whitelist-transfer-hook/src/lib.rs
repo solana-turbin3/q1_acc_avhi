@@ -22,15 +22,15 @@ pub mod whitelist_transfer_hook {
         ctx.accounts.initialize_config(&ctx.bumps)
     }
 
-    pub fn add_to_whitelist(ctx: Context<AddToWhiteList>, authority: Pubkey) -> Result<()> {
-        ctx.accounts.add_to_whitelist(authority, &ctx.bumps)
+    pub fn add_to_whitelist(ctx: Context<AddToWhiteList>, address: Pubkey) -> Result<()> {
+        ctx.accounts.add_to_whitelist(address, &ctx.bumps)
     }
 
     pub fn remove_from_whitelist(
         ctx: Context<RemoveFromWhiteList>,
-        authority: Pubkey,
+        address: Pubkey,
     ) -> Result<()> {
-        ctx.accounts.remove_from_whitelist(authority)
+        ctx.accounts.remove_from_whitelist(address)
     }
 
     pub fn init_mint(ctx: Context<TokenFactory>, decimals: u8) -> Result<()> {
