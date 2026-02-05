@@ -24,8 +24,8 @@ mod test {
         std::{path::PathBuf, str::FromStr},
     };
 
-    use solana_clock::Clock;
     use anchor_lang::prelude::Pubkey;
+    use solana_clock::Clock;
 
     static PROGRAM_ID: Pubkey = crate::ID;
 
