@@ -10,6 +10,9 @@ clean:
 format:
 	cargo +nightly fmt --all
 
+check:
+	cargo clippy
+
 all: 
 	make clean && make build && make test
 
