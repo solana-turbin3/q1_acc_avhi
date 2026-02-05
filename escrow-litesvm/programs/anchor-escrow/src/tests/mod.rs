@@ -359,9 +359,7 @@ mod test {
         msg!("CUs Consumed: {}", tx.compute_units_consumed);
         msg!("Tx Signature: {}", tx.signature);
 
-        let taker_ata_a_account = program
-            .get_account(&pubkey_to_addr(&addr_to_pubkey(&taker_ata_a)))
-            .unwrap();
+        let taker_ata_a_account = program.get_account(&taker_ata_a).unwrap();
         let taker_ata_a_data =
             spl_token::state::Account::unpack(&taker_ata_a_account.data).unwrap();
         assert_eq!(taker_ata_a_data.amount, 10);
