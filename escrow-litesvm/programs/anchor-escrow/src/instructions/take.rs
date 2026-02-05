@@ -4,6 +4,7 @@ use anchor_spl::{
     token::{close_account, transfer, CloseAccount, Mint, Token, TokenAccount, Transfer},
 };
 
+use crate::error::ErrorCode;
 use crate::state::Escrow;
 
 //Create context
@@ -33,17 +34,17 @@ pub struct Take<'info> {
     pub escrow: Account<'info, Escrow>,
     #[account(mut)]
     pub vault: Account<'info, TokenAccount>,
+    pub clock: Sysvar<'info, Clock>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 
-//Deposit tokens from taker to maker
-//Transfer tokens from vault to taker
-//Close vault account
 impl<'info> Take<'info> {
-    // Manual validation to replace removed constraints (reduces stack usage)
     pub fn validate(&self) -> Result<()> {
+        let now = self.clock.unix_timestamp;
+
+        const FIVE_DAYS: i64 = 5 * 24 * 60 * 60;
         // Validate taker_ata_a belongs to taker and uses mint_a
         require_keys_eq!(
             self.taker_ata_a.owner,
@@ -90,6 +91,11 @@ impl<'info> Take<'info> {
             self.vault.mint,
             self.mint_a.key(),
             ErrorCode::ConstraintTokenMint
+        );
+
+        require!(
+            now >= self.escrow.created_at + FIVE_DAYS,
+            ErrorCode::TooEarlyToTake,
         );
 
         Ok(())
