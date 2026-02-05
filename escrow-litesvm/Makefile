@@ -7,4 +7,7 @@ test: build
 clean:
 	cargo clean
 
+format:
+	cargo +nightly fmt --all
+
 .PHONY: build test clean
