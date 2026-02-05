@@ -10,4 +10,7 @@ clean:
 format:
 	cargo +nightly fmt --all
 
+all:
+	make clean && make build && make test
+
 .PHONY: build test clean
