@@ -6,7 +6,10 @@ mod test {
             prelude::msg, solana_program::program_pack::Pack, AccountDeserialize, InstructionData,
             ToAccountMetas,
         },
-        anchor_spl::{associated_token, token::spl_token},
+        anchor_spl::{
+            associated_token::{self},
+            token::spl_token,
+        },
         litesvm::LiteSVM,
         litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo},
         solana_account::Account,
@@ -51,7 +54,7 @@ mod test {
 
         let program_data = std::fs::read(so_path).expect("Failed to read program SO file");
 
-        program.add_program(pubkey_to_addr(&PROGRAM_ID), &program_data);
+        let _ = program.add_program(pubkey_to_addr(&PROGRAM_ID), &program_data);
 
         // Example on how to Load an account from devnet
         // LiteSVM does not have access to real Solana network data since it does not have network access,
@@ -201,5 +204,101 @@ mod test {
         assert_eq!(escrow_data.mint_a, addr_to_pubkey(&mint_a));
         assert_eq!(escrow_data.mint_b, addr_to_pubkey(&mint_b));
         assert_eq!(escrow_data.receive, 10);
+    }
+
+    #[test]
+    fn test_take() {
+        let (mut program, payer) = setup();
+
+        let maker = payer.pubkey();
+        let taker = Keypair::new();
+
+        let mint_a = CreateMint::new(&mut program, &payer)
+            .decimals(6)
+            .authority(&maker)
+            .send()
+            .unwrap();
+        msg!("Mint A: {}\n", mint_a);
+
+        let mint_b = CreateMint::new(&mut program, &payer)
+            .decimals(6)
+            .authority(&taker.pubkey())
+            .send()
+            .unwrap();
+        msg!("Mint B: {}\n", mint_b);
+
+        let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
+            .owner(&taker.pubkey())
+            .send()
+            .unwrap();
+
+        let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+            .owner(&taker.pubkey())
+            .send()
+            .unwrap();
+        msg!("maker ata a: {}\n", taker_ata_b);
+
+        let maker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+            .owner(&maker)
+            .send()
+            .unwrap();
+
+        MintTo::new(&mut program, &taker, &mint_b, &taker_ata_b, 1000000000)
+            .send()
+            .unwrap();
+
+        let escrow = Pubkey::find_program_address(
+            &[b"escrow", maker.as_ref(), &123u64.to_le_bytes()],
+            &PROGRAM_ID,
+        )
+        .0;
+        msg!("Escrow PDA: {}\n", escrow);
+
+        let vault =
+            associated_token::get_associated_token_address(&escrow, &addr_to_pubkey(&mint_a));
+        msg!("Vault PDA: {}\n", vault);
+        let asspciated_token_program = associated_token::spl_associated_token_account::ID;
+        let token_program = spl_token::ID;
+        let system_program = anchor_lang::system_program::ID;
+
+        let anchor_accounts = crate::accounts::Take {
+            maker: addr_to_pubkey(&maker),
+            taker: addr_to_pubkey(&taker.pubkey()),
+            mint_a: addr_to_pubkey(&mint_a),
+            mint_b: addr_to_pubkey(&mint_b),
+            taker_ata_a: addr_to_pubkey(&taker_ata_a),
+            taker_ata_b: addr_to_pubkey(&taker_ata_b),
+            maker_ata_b: addr_to_pubkey(&maker_ata_b),
+            escrow: escrow,
+            vault: vault,
+            associated_token_program: asspciated_token_program,
+            token_program: token_program,
+            system_program: system_program,
+        }
+        .to_account_metas(None);
+
+        let take_ix = Instruction {
+            program_id: pubkey_to_addr(&PROGRAM_ID),
+            accounts: anchor_accounts
+                .into_iter()
+                .map(|m| solana_instruction::AccountMeta {
+                    pubkey: pubkey_to_addr(&m.pubkey),
+                    is_signer: m.is_signer,
+                    is_writable: m.is_writable,
+                })
+                .collect(),
+            data: crate::instruction::Take.data(),
+        };
+
+        let message = Message::new(&[take_ix], Some(&taker.pubkey()));
+        let recent_blockhash = program.latest_blockhash();
+
+        let transaction = Transaction::new(&[&payer], message, recent_blockhash);
+
+        let tx = program.send_transaction(transaction).unwrap();
+
+        msg!("\n\nMake transaction sucessfull");
+        msg!("CUs Consumed: {}", tx.compute_units_consumed);
+        msg!("Tx Signature: {}", tx.signature);
     }
 }
