@@ -24,6 +24,7 @@ mod test {
         std::{path::PathBuf, str::FromStr},
     };
 
+    use solana_clock::Clock;
     use anchor_lang::prelude::Pubkey;
 
     static PROGRAM_ID: Pubkey = crate::ID;
@@ -127,11 +128,11 @@ mod test {
             mint_a: addr_to_pubkey(&mint_a),
             mint_b: addr_to_pubkey(&mint_b),
             maker_ata_a: addr_to_pubkey(&maker_ata_a),
-            escrow: escrow,
-            vault: vault,
+            escrow,
+            vault,
             associated_token_program: asspciated_token_program,
-            token_program: token_program,
-            system_program: system_program,
+            token_program,
+            system_program,
         }
         .to_account_metas(None);
 
@@ -260,11 +261,11 @@ mod test {
             mint_a: addr_to_pubkey(&mint_a),
             mint_b: addr_to_pubkey(&mint_b),
             maker_ata_a: addr_to_pubkey(&maker_ata_a),
-            escrow: escrow,
-            vault: vault,
+            escrow,
+            vault,
             associated_token_program: asspciated_token_program,
-            token_program: token_program,
-            system_program: system_program,
+            token_program,
+            system_program,
         }
         .to_account_metas(None);
 
@@ -293,6 +294,12 @@ mod test {
 
         msg!("\n\nMake transaction successful");
 
+        let mut clock: Clock = program.get_sysvar();
+
+        clock.unix_timestamp += 5 * 24 * 60 * 60; // 5 days
+
+        program.set_sysvar(&clock);
+
         let anchor_accounts = crate::accounts::Take {
             maker: addr_to_pubkey(&maker),
             taker: addr_to_pubkey(&taker.pubkey()),
@@ -301,11 +308,12 @@ mod test {
             taker_ata_a: addr_to_pubkey(&taker_ata_a),
             taker_ata_b: addr_to_pubkey(&taker_ata_b),
             maker_ata_b: addr_to_pubkey(&maker_ata_b),
-            escrow: escrow,
-            vault: vault,
+            escrow,
+            vault,
             associated_token_program: asspciated_token_program,
-            token_program: token_program,
-            system_program: system_program,
+            token_program,
+            system_program,
+            clock: anchor_lang::solana_program::sysvar::clock::ID,
         }
         .to_account_metas(None);
 
@@ -414,11 +422,11 @@ mod test {
             mint_a: addr_to_pubkey(&mint_a),
             mint_b: addr_to_pubkey(&mint_b),
             maker_ata_a: addr_to_pubkey(&maker_ata_a),
-            escrow: escrow,
-            vault: vault,
+            escrow,
+            vault,
             associated_token_program: asspciated_token_program,
-            token_program: token_program,
-            system_program: system_program,
+            token_program,
+            system_program,
         }
         .to_account_metas(None);
 
@@ -451,10 +459,10 @@ mod test {
             maker: maker_pubkey,
             mint_a: addr_to_pubkey(&mint_a),
             maker_ata_a: addr_to_pubkey(&maker_ata_a),
-            escrow: escrow,
-            vault: vault,
-            token_program: token_program,
-            system_program: system_program,
+            escrow,
+            vault,
+            token_program,
+            system_program,
         }
         .to_account_metas(None);
 
