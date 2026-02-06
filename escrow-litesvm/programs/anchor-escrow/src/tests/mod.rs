@@ -27,6 +27,8 @@ mod test {
     use anchor_lang::prelude::Pubkey;
     use solana_clock::Clock;
 
+    use crate::constants::{ESCROW_SEED, FIVE_DAYS};
+
     static PROGRAM_ID: Pubkey = crate::ID;
 
     fn pubkey_to_addr(pk: &Pubkey) -> Address {
@@ -105,7 +107,7 @@ mod test {
 
         let maker_pubkey = addr_to_pubkey(&maker);
         let escrow = Pubkey::find_program_address(
-            &[b"escrow", maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+            &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
             &PROGRAM_ID,
         )
         .0;
@@ -242,7 +244,7 @@ mod test {
 
         let maker_pubkey = addr_to_pubkey(&maker);
         let escrow = Pubkey::find_program_address(
-            &[b"escrow", maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+            &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
             &PROGRAM_ID,
         )
         .0;
@@ -296,7 +298,7 @@ mod test {
 
         let mut clock: Clock = program.get_sysvar();
 
-        clock.unix_timestamp += 5 * 24 * 60 * 60; // 5 days
+        clock.unix_timestamp += FIVE_DAYS;
 
         program.set_sysvar(&clock);
 
@@ -399,7 +401,7 @@ mod test {
 
         let maker_pubkey = addr_to_pubkey(&maker);
         let escrow = Pubkey::find_program_address(
-            &[b"escrow", maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+            &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
             &PROGRAM_ID,
         )
         .0;
@@ -455,6 +457,9 @@ mod test {
 
         msg!("\n\nMake transaction successful");
 
+        // let vault_account = program.get_account(&pubkey_to_addr(&vault));
+        // println!("Raw Vault Account: {:?}", vault_account);
+
         let refund_accounts = crate::accounts::Refund {
             maker: maker_pubkey,
             mint_a: addr_to_pubkey(&mint_a),
@@ -500,6 +505,29 @@ mod test {
         assert_eq!(maker_ata_a_data.mint, addr_to_pubkey(&mint_a));
 
         let vault_account = program.get_account(&pubkey_to_addr(&vault));
+        assert!(vault_account.is_none(), "Vault should be closed");
+
+        // let vault_addr = pubkey_to_addr(&vault);
+        // let vault_account = program.get_account(&vault_addr);
+        //
+        // println!("Vault Address: {}", vault_addr);
+        // println!("Raw get_account() Result: {:?}", vault_account);
+        //
+        // match &vault_account {
+        //     None => {
+        //         println!("Vault account is NONE -> Account fully removed");
+        //     }
+        //     Some(acc) => {
+        //         println!("Vault account EXISTS -> inspecting fields");
+        //         println!("Lamports: {}", acc.lamports);
+        //         println!("Data Length: {}", acc.data.len());
+        //         println!("Owner: {}", acc.owner);
+        //         println!("Executable: {}", acc.executable);
+        //         println!("Rent Epoch: {}", acc.rent_epoch);
+        //     }
+        // }
+        //
+
         assert!(vault_account.is_none(), "Vault should be closed");
 
         let escrow_account = program.get_account(&pubkey_to_addr(&escrow));

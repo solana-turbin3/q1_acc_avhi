@@ -4,6 +4,7 @@ use anchor_spl::token_interface::{
     TransferChecked,
 };
 
+use crate::constants::ESCROW_SEED;
 use crate::state::Escrow;
 
 #[derive(Accounts)]
@@ -22,7 +23,7 @@ pub struct Refund<'info> {
         close = maker,
         has_one = mint_a,
         has_one = maker,
-        seeds = [b"escrow", maker.key().as_ref(), escrow.seed.to_le_bytes().as_ref()],
+        seeds = [ESCROW_SEED, maker.key().as_ref(), escrow.seed.to_le_bytes().as_ref()],
         bump = escrow.bump,
     )]
     pub escrow: Account<'info, Escrow>,
@@ -39,7 +40,7 @@ pub struct Refund<'info> {
 impl<'info> Refund<'info> {
     pub fn refund_and_close_vault(&mut self) -> Result<()> {
         let signer_seeds: [&[&[u8]]; 1] = [&[
-            b"escrow",
+            ESCROW_SEED,
             self.maker.key.as_ref(),
             &self.escrow.seed.to_le_bytes()[..],
             &[self.escrow.bump],

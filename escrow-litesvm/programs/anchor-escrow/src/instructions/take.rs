@@ -4,10 +4,10 @@ use anchor_spl::{
     token::{close_account, transfer, CloseAccount, Mint, Token, TokenAccount, Transfer},
 };
 
+use crate::constants::{ESCROW_SEED, FIVE_DAYS};
 use crate::error::ErrorCode;
 use crate::state::Escrow;
 
-//Create context
 #[derive(Accounts)]
 pub struct Take<'info> {
     #[account(mut)]
@@ -28,7 +28,7 @@ pub struct Take<'info> {
         has_one = maker,
         has_one = mint_a,
         has_one = mint_b,
-        seeds = [b"escrow", maker.key().as_ref(), escrow.seed.to_le_bytes().as_ref()],
+        seeds = [ESCROW_SEED, maker.key().as_ref(), escrow.seed.to_le_bytes().as_ref()],
         bump = escrow.bump,
     )]
     pub escrow: Account<'info, Escrow>,
@@ -44,7 +44,6 @@ impl<'info> Take<'info> {
     pub fn validate(&self) -> Result<()> {
         let now = self.clock.unix_timestamp;
 
-        const FIVE_DAYS: i64 = 5 * 24 * 60 * 60;
         // Validate taker_ata_a belongs to taker and uses mint_a
         require_keys_eq!(
             self.taker_ata_a.owner,
@@ -117,7 +116,7 @@ impl<'info> Take<'info> {
 
     pub fn withdraw_and_close_vault(&mut self) -> Result<()> {
         let signer_seeds: [&[&[u8]]; 1] = [&[
-            b"escrow",
+            ESCROW_SEED,
             self.maker.key.as_ref(),
             &self.escrow.seed.to_le_bytes()[..],
             &[self.escrow.bump],
