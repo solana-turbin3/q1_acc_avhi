@@ -34,8 +34,7 @@ pub fn setup() -> (LiteSVM, Keypair) {
     let _ = program.add_program(pubkey_to_addr(&PROGRAM_ID), &program_data);
 
     let rpc_client = RpcClient::new("https://api.devnet.solana.com");
-    let account_address =
-        Pubkey::from_str("DRYvf71cbF2s5wgaJQvAGkghMkRcp5arvsK2w97vXhi2").unwrap();
+    let account_address = Pubkey::from_str("DRYvf71cbF2s5wgaJQvAGkghMkRcp5arvsK2w97vXhi2").unwrap();
     let fetched_account = rpc_client
         .get_account(&account_address)
         .expect("Failed to fetch account from devnet");

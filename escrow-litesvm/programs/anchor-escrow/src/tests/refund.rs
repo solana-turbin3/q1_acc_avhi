@@ -1,4 +1,6 @@
-use anchor_lang::{prelude::msg, solana_program::program_pack::Pack, InstructionData, ToAccountMetas};
+use anchor_lang::{
+    prelude::msg, solana_program::program_pack::Pack, InstructionData, ToAccountMetas,
+};
 use anchor_spl::{associated_token, token::spl_token};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_instruction::Instruction;
