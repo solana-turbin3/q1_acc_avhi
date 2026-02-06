@@ -17,10 +17,6 @@ use super::helper::{addr_to_pubkey, pubkey_to_addr, setup, PROGRAM_ID};
 fn test_take() {
     let (mut program, payer) = setup();
 
-    let mut payer_account = program.get_account(&payer.pubkey()).unwrap();
-    payer_account.lamports += 10 * LAMPORTS_PER_SOL;
-    program.set_account(payer.pubkey(), payer_account).unwrap();
-
     let maker = payer.pubkey();
     let taker = Keypair::new();
 
@@ -34,9 +30,9 @@ fn test_take() {
         .send()
         .unwrap();
 
-    let mint_b = CreateMint::new(&mut program, &payer)
+    let mint_b = CreateMint::new(&mut program, &taker)
         .decimals(6)
-        .authority(&maker)
+        .authority(&taker.pubkey())
         .send()
         .unwrap();
 
@@ -45,12 +41,12 @@ fn test_take() {
         .send()
         .unwrap();
 
-    let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
+    let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &taker, &mint_a)
         .owner(&taker.pubkey())
         .send()
         .unwrap();
 
-    let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+    let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &taker, &mint_b)
         .owner(&taker.pubkey())
         .send()
         .unwrap();
@@ -64,13 +60,12 @@ fn test_take() {
         .send()
         .unwrap();
 
-    MintTo::new(&mut program, &payer, &mint_b, &taker_ata_b, 1000000000)
+    MintTo::new(&mut program, &taker, &mint_b, &taker_ata_b, 1000000000)
         .send()
         .unwrap();
 
-    let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
-        &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+        &[ESCROW_SEED, maker.as_ref(), &123u64.to_le_bytes()],
         &PROGRAM_ID,
     )
     .0;
@@ -82,7 +77,7 @@ fn test_take() {
     let system_program = anchor_lang::system_program::ID;
 
     let make_accounts = crate::accounts::Make {
-        maker: maker_pubkey,
+        maker: addr_to_pubkey(&maker),
         mint_a: addr_to_pubkey(&mint_a),
         mint_b: addr_to_pubkey(&mint_b),
         maker_ata_a: addr_to_pubkey(&maker_ata_a),
@@ -191,10 +186,6 @@ fn test_take() {
 fn test_take_too_early() {
     let (mut program, payer) = setup();
 
-    let mut payer_account = program.get_account(&payer.pubkey()).unwrap();
-    payer_account.lamports += 10 * LAMPORTS_PER_SOL;
-    program.set_account(payer.pubkey(), payer_account).unwrap();
-
     let maker = payer.pubkey();
     let taker = Keypair::new();
 
@@ -208,9 +199,9 @@ fn test_take_too_early() {
         .send()
         .unwrap();
 
-    let mint_b = CreateMint::new(&mut program, &payer)
+    let mint_b = CreateMint::new(&mut program, &taker)
         .decimals(6)
-        .authority(&maker)
+        .authority(&taker.pubkey())
         .send()
         .unwrap();
 
@@ -219,12 +210,12 @@ fn test_take_too_early() {
         .send()
         .unwrap();
 
-    let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
+    let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &taker, &mint_a)
         .owner(&taker.pubkey())
         .send()
         .unwrap();
 
-    let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+    let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &taker, &mint_b)
         .owner(&taker.pubkey())
         .send()
         .unwrap();
@@ -238,13 +229,12 @@ fn test_take_too_early() {
         .send()
         .unwrap();
 
-    MintTo::new(&mut program, &payer, &mint_b, &taker_ata_b, 1000000000)
+    MintTo::new(&mut program, &taker, &mint_b, &taker_ata_b, 1000000000)
         .send()
         .unwrap();
 
-    let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
-        &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+        &[ESCROW_SEED, maker.as_ref(), &123u64.to_le_bytes()],
         &PROGRAM_ID,
     )
     .0;
@@ -256,7 +246,7 @@ fn test_take_too_early() {
     let system_program = anchor_lang::system_program::ID;
 
     let make_accounts = crate::accounts::Make {
-        maker: maker_pubkey,
+        maker: addr_to_pubkey(&maker),
         mint_a: addr_to_pubkey(&mint_a),
         mint_b: addr_to_pubkey(&mint_b),
         maker_ata_a: addr_to_pubkey(&maker_ata_a),

@@ -1,7 +1,13 @@
 use anchor_lang::{solana_program::program_pack::Pack, InstructionData, ToAccountMetas};
-use anchor_spl::{associated_token, token::spl_token};
+use anchor_spl::{
+    associated_token::{
+        self, spl_associated_token_account::solana_program::native_token::LAMPORTS_PER_SOL,
+    },
+    token::spl_token,
+};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_instruction::Instruction;
+use solana_keypair::Keypair;
 use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
@@ -15,6 +21,11 @@ fn test_refund() {
     let (mut program, payer) = setup();
 
     let maker = payer.pubkey();
+    let taker = Keypair::new();
+
+    program
+        .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
+        .expect("Failed to airdrop SOL to taker");
 
     let mint_a = CreateMint::new(&mut program, &payer)
         .decimals(6)
@@ -22,9 +33,9 @@ fn test_refund() {
         .send()
         .unwrap();
 
-    let mint_b = CreateMint::new(&mut program, &payer)
+    let mint_b = CreateMint::new(&mut program, &taker)
         .decimals(6)
-        .authority(&maker)
+        .authority(&taker.pubkey())
         .send()
         .unwrap();
 
@@ -33,9 +44,8 @@ fn test_refund() {
         .send()
         .unwrap();
 
-    let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
-        &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+        &[ESCROW_SEED, maker.as_ref(), &123u64.to_le_bytes()],
         &PROGRAM_ID,
     )
     .0;
@@ -51,7 +61,7 @@ fn test_refund() {
         .unwrap();
 
     let make_accounts = crate::accounts::Make {
-        maker: maker_pubkey,
+        maker: addr_to_pubkey(&maker),
         mint_a: addr_to_pubkey(&mint_a),
         mint_b: addr_to_pubkey(&mint_b),
         maker_ata_a: addr_to_pubkey(&maker_ata_a),
@@ -87,7 +97,7 @@ fn test_refund() {
     program.send_transaction(transaction).unwrap();
 
     let refund_accounts = crate::accounts::Refund {
-        maker: maker_pubkey,
+        maker: addr_to_pubkey(&maker),
         mint_a: addr_to_pubkey(&mint_a),
         maker_ata_a: addr_to_pubkey(&maker_ata_a),
         escrow,

@@ -1,9 +1,15 @@
 use anchor_lang::{
     solana_program::program_pack::Pack, AccountDeserialize, InstructionData, ToAccountMetas,
 };
-use anchor_spl::{associated_token, token::spl_token};
+use anchor_spl::{
+    associated_token::{
+        self, spl_associated_token_account::solana_program::native_token::LAMPORTS_PER_SOL,
+    },
+    token::spl_token,
+};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_instruction::Instruction;
+use solana_keypair::Keypair;
 use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
@@ -17,6 +23,11 @@ fn test_make() {
     let (mut program, payer) = setup();
 
     let maker = payer.pubkey();
+    let taker = Keypair::new();
+
+    program
+        .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
+        .expect("Failed to airdrop SOL to taker");
 
     let mint_a = CreateMint::new(&mut program, &payer)
         .decimals(6)
@@ -24,9 +35,9 @@ fn test_make() {
         .send()
         .unwrap();
 
-    let mint_b = CreateMint::new(&mut program, &payer)
+    let mint_b = CreateMint::new(&mut program, &taker)
         .decimals(6)
-        .authority(&maker)
+        .authority(&taker.pubkey())
         .send()
         .unwrap();
 
@@ -35,9 +46,8 @@ fn test_make() {
         .send()
         .unwrap();
 
-    let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
-        &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+        &[ESCROW_SEED, maker.as_ref(), &123u64.to_le_bytes()],
         &PROGRAM_ID,
     )
     .0;
@@ -53,7 +63,7 @@ fn test_make() {
         .unwrap();
 
     let anchor_accounts = crate::accounts::Make {
-        maker: maker_pubkey,
+        maker: addr_to_pubkey(&maker),
         mint_a: addr_to_pubkey(&mint_a),
         mint_b: addr_to_pubkey(&mint_b),
         maker_ata_a: addr_to_pubkey(&maker_ata_a),
@@ -100,7 +110,7 @@ fn test_make() {
     let escrow_data =
         crate::state::Escrow::try_deserialize(&mut escrow_account.data.as_ref()).unwrap();
     assert_eq!(escrow_data.seed, 123u64);
-    assert_eq!(escrow_data.maker, maker_pubkey);
+    assert_eq!(escrow_data.maker, addr_to_pubkey(&maker));
     assert_eq!(escrow_data.mint_a, addr_to_pubkey(&mint_a));
     assert_eq!(escrow_data.mint_b, addr_to_pubkey(&mint_b));
     assert_eq!(escrow_data.receive, 10);
