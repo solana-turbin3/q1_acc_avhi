@@ -1,13 +1,10 @@
 use anchor_lang::{solana_program::program_pack::Pack, InstructionData, ToAccountMetas};
 use anchor_spl::{
-    associated_token::{
-        self, spl_associated_token_account::solana_program::native_token::LAMPORTS_PER_SOL,
-    },
+    associated_token::{self},
     token::spl_token,
 };
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_instruction::Instruction;
-use solana_keypair::Keypair;
 use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
@@ -21,11 +18,6 @@ fn test_refund() {
     let (mut program, payer) = setup();
 
     let maker = payer.pubkey();
-    let taker = Keypair::new();
-
-    program
-        .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
-        .expect("Failed to airdrop SOL to taker");
 
     let mint_a = CreateMint::new(&mut program, &payer)
         .decimals(6)
@@ -33,9 +25,9 @@ fn test_refund() {
         .send()
         .unwrap();
 
-    let mint_b = CreateMint::new(&mut program, &taker)
+    let mint_b = CreateMint::new(&mut program, &payer)
         .decimals(6)
-        .authority(&taker.pubkey())
+        .authority(&payer.pubkey())
         .send()
         .unwrap();
 

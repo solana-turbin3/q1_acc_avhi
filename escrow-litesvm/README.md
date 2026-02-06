@@ -275,6 +275,19 @@ program.set_sysvar(&clock);
 
 This bypasses the 5-day waiting period, allowing instant testing of the take instruction.
 
+### Test: Take Too Early
+
+Tests that the 5-day time constraint is enforced:
+
+```rust
+#[test]
+fn test_take_too_early() {
+    // 1. Setup and create escrow (same as test_take)
+    // 2. Attempt take WITHOUT fast-forwarding time
+    // 3. Assert transaction fails with TooEarlyToTake error
+}
+```
+
 ### Test: Refund
 
 Tests canceling an escrow:
@@ -287,6 +300,27 @@ fn test_refund() {
     // 3. Verify maker received all tokens back
     // 4. Verify vault and escrow are closed
 }
+```
+
+---
+
+## Build & Test
+
+```bash
+# Build the program
+make build
+
+# Build and run all tests
+make test
+
+# Format code (requires nightly)
+make format
+
+# Run clippy lints
+make check
+
+# Clean, build, and test
+make all
 ```
 
 ---
