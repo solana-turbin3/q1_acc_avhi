@@ -374,6 +374,157 @@ mod test {
     }
 
     #[test]
+    fn test_take_too_early() {
+        let (mut program, payer) = setup();
+
+        let mut payer_account = program.get_account(&payer.pubkey()).unwrap();
+        payer_account.lamports += 10 * LAMPORTS_PER_SOL;
+        program.set_account(payer.pubkey(), payer_account).unwrap();
+
+        let maker = payer.pubkey();
+        let taker = Keypair::new();
+
+        program
+            .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
+            .expect("Failed to airdrop SOL to taker");
+
+        let mint_a = CreateMint::new(&mut program, &payer)
+            .decimals(6)
+            .authority(&maker)
+            .send()
+            .unwrap();
+
+        let mint_b = CreateMint::new(&mut program, &payer)
+            .decimals(6)
+            .authority(&maker)
+            .send()
+            .unwrap();
+
+        let maker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
+            .owner(&maker)
+            .send()
+            .unwrap();
+
+        let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
+            .owner(&taker.pubkey())
+            .send()
+            .unwrap();
+
+        let taker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+            .owner(&taker.pubkey())
+            .send()
+            .unwrap();
+
+        let maker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
+            .owner(&maker)
+            .send()
+            .unwrap();
+
+        MintTo::new(&mut program, &payer, &mint_a, &maker_ata_a, 1000000000)
+            .send()
+            .unwrap();
+
+        MintTo::new(&mut program, &payer, &mint_b, &taker_ata_b, 1000000000)
+            .send()
+            .unwrap();
+
+        let maker_pubkey = addr_to_pubkey(&maker);
+        let escrow = Pubkey::find_program_address(
+            &[ESCROW_SEED, maker_pubkey.as_ref(), &123u64.to_le_bytes()],
+            &PROGRAM_ID,
+        )
+        .0;
+
+        let vault =
+            associated_token::get_associated_token_address(&escrow, &addr_to_pubkey(&mint_a));
+
+        let asspciated_token_program = associated_token::spl_associated_token_account::ID;
+        let token_program = spl_token::ID;
+        let system_program = anchor_lang::system_program::ID;
+
+        let make_accounts = crate::accounts::Make {
+            maker: maker_pubkey,
+            mint_a: addr_to_pubkey(&mint_a),
+            mint_b: addr_to_pubkey(&mint_b),
+            maker_ata_a: addr_to_pubkey(&maker_ata_a),
+            escrow,
+            vault,
+            associated_token_program: asspciated_token_program,
+            token_program,
+            system_program,
+        }
+        .to_account_metas(None);
+
+        let make_ix = Instruction {
+            program_id: pubkey_to_addr(&PROGRAM_ID),
+            accounts: make_accounts
+                .into_iter()
+                .map(|m| solana_instruction::AccountMeta {
+                    pubkey: pubkey_to_addr(&m.pubkey),
+                    is_signer: m.is_signer,
+                    is_writable: m.is_writable,
+                })
+                .collect(),
+            data: crate::instruction::Make {
+                deposit: 10,
+                seed: 123u64,
+                receive: 10,
+            }
+            .data(),
+        };
+
+        let message = Message::new(&[make_ix], Some(&payer.pubkey()));
+        let recent_blockhash = program.latest_blockhash();
+        let transaction = Transaction::new(&[&payer], message, recent_blockhash);
+        program.send_transaction(transaction).unwrap();
+
+        msg!("\n\nMake transaction successful");
+
+        let anchor_accounts = crate::accounts::Take {
+            maker: addr_to_pubkey(&maker),
+            taker: addr_to_pubkey(&taker.pubkey()),
+            mint_a: addr_to_pubkey(&mint_a),
+            mint_b: addr_to_pubkey(&mint_b),
+            taker_ata_a: addr_to_pubkey(&taker_ata_a),
+            taker_ata_b: addr_to_pubkey(&taker_ata_b),
+            maker_ata_b: addr_to_pubkey(&maker_ata_b),
+            escrow,
+            vault,
+            associated_token_program: asspciated_token_program,
+            token_program,
+            system_program,
+            clock: anchor_lang::solana_program::sysvar::clock::ID,
+        }
+        .to_account_metas(None);
+
+        let take_ix = Instruction {
+            program_id: pubkey_to_addr(&PROGRAM_ID),
+            accounts: anchor_accounts
+                .into_iter()
+                .map(|m| solana_instruction::AccountMeta {
+                    pubkey: pubkey_to_addr(&m.pubkey),
+                    is_signer: m.is_signer,
+                    is_writable: m.is_writable,
+                })
+                .collect(),
+            data: crate::instruction::Take.data(),
+        };
+
+        let message = Message::new(&[take_ix], Some(&taker.pubkey()));
+        let recent_blockhash = program.latest_blockhash();
+
+        let transaction = Transaction::new(&[&taker], message, recent_blockhash);
+
+        let result = program.send_transaction(transaction);
+
+        assert!(
+            result.is_err(),
+            "Take should fail when called before 5 days"
+        );
+        msg!("\n\nTake correctly failed - too early to take");
+    }
+
+    #[test]
     fn test_refund() {
         let (mut program, payer) = setup();
 
