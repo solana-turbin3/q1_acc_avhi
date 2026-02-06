@@ -1,6 +1,5 @@
 use anchor_lang::{
-    prelude::msg, solana_program::program_pack::Pack, AccountDeserialize, InstructionData,
-    ToAccountMetas,
+    solana_program::program_pack::Pack, AccountDeserialize, InstructionData, ToAccountMetas,
 };
 use anchor_spl::{associated_token, token::spl_token};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
@@ -24,20 +23,17 @@ fn test_make() {
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint A: {}\n", mint_a);
 
     let mint_b = CreateMint::new(&mut program, &payer)
         .decimals(6)
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint B: {}\n", mint_b);
 
     let maker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
         .owner(&maker)
         .send()
         .unwrap();
-    msg!("Maker ATA A: {}\n", maker_ata_a);
 
     let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
@@ -45,10 +41,8 @@ fn test_make() {
         &PROGRAM_ID,
     )
     .0;
-    msg!("Escrow PDA: {}\n", escrow);
 
     let vault = associated_token::get_associated_token_address(&escrow, &addr_to_pubkey(&mint_a));
-    msg!("Vault PDA: {}\n", vault);
 
     let asspciated_token_program = associated_token::spl_associated_token_account::ID;
     let token_program = spl_token::ID;
@@ -94,11 +88,7 @@ fn test_make() {
 
     let transaction = Transaction::new(&[&payer], message, recent_blockhash);
 
-    let tx = program.send_transaction(transaction).unwrap();
-
-    msg!("\n\nMake transaction successfull");
-    msg!("CUs Consumed: {}", tx.compute_units_consumed);
-    msg!("Tx Signature: {}", tx.signature);
+    program.send_transaction(transaction).unwrap();
 
     let vault_account = program.get_account(&pubkey_to_addr(&vault)).unwrap();
     let vault_data = spl_token::state::Account::unpack(&vault_account.data).unwrap();

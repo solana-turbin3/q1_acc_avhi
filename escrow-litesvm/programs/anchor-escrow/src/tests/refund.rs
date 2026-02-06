@@ -1,6 +1,4 @@
-use anchor_lang::{
-    prelude::msg, solana_program::program_pack::Pack, InstructionData, ToAccountMetas,
-};
+use anchor_lang::{solana_program::program_pack::Pack, InstructionData, ToAccountMetas};
 use anchor_spl::{associated_token, token::spl_token};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_instruction::Instruction;
@@ -23,20 +21,17 @@ fn test_refund() {
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint A: {}\n", mint_a);
 
     let mint_b = CreateMint::new(&mut program, &payer)
         .decimals(6)
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint B: {}\n", mint_b);
 
     let maker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
         .owner(&maker)
         .send()
         .unwrap();
-    msg!("Maker ATA A: {}\n", maker_ata_a);
 
     let maker_pubkey = addr_to_pubkey(&maker);
     let escrow = anchor_lang::prelude::Pubkey::find_program_address(
@@ -44,10 +39,8 @@ fn test_refund() {
         &PROGRAM_ID,
     )
     .0;
-    msg!("Escrow PDA: {}\n", escrow);
 
     let vault = associated_token::get_associated_token_address(&escrow, &addr_to_pubkey(&mint_a));
-    msg!("Vault PDA: {}\n", vault);
 
     let asspciated_token_program = associated_token::spl_associated_token_account::ID;
     let token_program = spl_token::ID;
@@ -93,8 +86,6 @@ fn test_refund() {
     let transaction = Transaction::new(&[&payer], message, recent_blockhash);
     program.send_transaction(transaction).unwrap();
 
-    msg!("\n\nMake transaction successful");
-
     let refund_accounts = crate::accounts::Refund {
         maker: maker_pubkey,
         mint_a: addr_to_pubkey(&mint_a),
@@ -124,11 +115,7 @@ fn test_refund() {
 
     let transaction = Transaction::new(&[&payer], message, recent_blockhash);
 
-    let tx = program.send_transaction(transaction).unwrap();
-
-    msg!("\n\nRefund transaction successfull");
-    msg!("CUs Consumed: {}", tx.compute_units_consumed);
-    msg!("Tx Signature: {}", tx.signature);
+    program.send_transaction(transaction).unwrap();
 
     let maker_ata_a_account = program
         .get_account(&pubkey_to_addr(&addr_to_pubkey(&maker_ata_a)))

@@ -1,6 +1,4 @@
-use anchor_lang::{
-    prelude::msg, solana_program::program_pack::Pack, InstructionData, ToAccountMetas,
-};
+use anchor_lang::{solana_program::program_pack::Pack, InstructionData, ToAccountMetas};
 use anchor_spl::{associated_token, token::spl_token};
 use litesvm_token::{CreateAssociatedTokenAccount, CreateMint, MintTo};
 use solana_clock::Clock;
@@ -35,20 +33,17 @@ fn test_take() {
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint A: {}\n", mint_a);
 
     let mint_b = CreateMint::new(&mut program, &payer)
         .decimals(6)
         .authority(&maker)
         .send()
         .unwrap();
-    msg!("Mint B: {}\n", mint_b);
 
     let maker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
         .owner(&maker)
         .send()
         .unwrap();
-    msg!("Maker ATA A: {}\n", maker_ata_a);
 
     let taker_ata_a = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_a)
         .owner(&taker.pubkey())
@@ -59,7 +54,6 @@ fn test_take() {
         .owner(&taker.pubkey())
         .send()
         .unwrap();
-    msg!("Taker ATA B: {}\n", taker_ata_b);
 
     let maker_ata_b = CreateAssociatedTokenAccount::new(&mut program, &payer, &mint_b)
         .owner(&maker)
@@ -80,10 +74,8 @@ fn test_take() {
         &PROGRAM_ID,
     )
     .0;
-    msg!("Escrow PDA: {}\n", escrow);
 
     let vault = associated_token::get_associated_token_address(&escrow, &addr_to_pubkey(&mint_a));
-    msg!("Vault PDA: {}\n", vault);
 
     let asspciated_token_program = associated_token::spl_associated_token_account::ID;
     let token_program = spl_token::ID;
@@ -124,8 +116,6 @@ fn test_take() {
     let recent_blockhash = program.latest_blockhash();
     let transaction = Transaction::new(&[&payer], message, recent_blockhash);
     program.send_transaction(transaction).unwrap();
-
-    msg!("\n\nMake transaction successful");
 
     let mut clock: Clock = program.get_sysvar();
 
@@ -168,11 +158,7 @@ fn test_take() {
 
     let transaction = Transaction::new(&[&taker], message, recent_blockhash);
 
-    let tx = program.send_transaction(transaction).unwrap();
-
-    msg!("\n\nTake transaction successful");
-    msg!("CUs Consumed: {}", tx.compute_units_consumed);
-    msg!("Tx Signature: {}", tx.signature);
+    program.send_transaction(transaction).unwrap();
 
     let taker_ata_a_account = program.get_account(&taker_ata_a).unwrap();
     let taker_ata_a_data = spl_token::state::Account::unpack(&taker_ata_a_account.data).unwrap();
@@ -305,10 +291,6 @@ fn test_take_too_early() {
     let transaction = Transaction::new(&[&payer], message, recent_blockhash);
     program.send_transaction(transaction).unwrap();
 
-    msg!("\n\nMake transaction successful");
-
-    // NOTE: We do NOT advance the clock here, so take should fail
-
     let anchor_accounts = crate::accounts::Take {
         maker: addr_to_pubkey(&maker),
         taker: addr_to_pubkey(&taker.pubkey()),
@@ -344,11 +326,7 @@ fn test_take_too_early() {
 
     let transaction = Transaction::new(&[&taker], message, recent_blockhash);
 
-    let result = program.send_transaction(transaction);
+    let res = program.send_transaction(transaction);
 
-    assert!(
-        result.is_err(),
-        "Take should fail when called before 5 days"
-    );
-    msg!("\n\nTake correctly failed - too early to take");
+    assert!(res.is_err(), "Take should fail when called before 5 days");
 }

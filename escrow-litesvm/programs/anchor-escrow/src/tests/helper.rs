@@ -1,4 +1,4 @@
-use anchor_lang::prelude::{msg, Pubkey};
+use anchor_lang::prelude::Pubkey;
 use litesvm::LiteSVM;
 use solana_account::Account;
 use solana_address::Address;
@@ -51,8 +51,6 @@ pub fn setup() -> (LiteSVM, Keypair) {
             },
         )
         .unwrap();
-
-    msg!("Lamports of fetched account: {}", fetched_account.lamports);
 
     (program, payer)
 }
