@@ -16,7 +16,7 @@ declare_id!("3n16mCbPsep8awDkznTGPNDFnJAKhgGRDEcsExX7G33S");
 pub mod transfer_hook_vault {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
+    pub fn initialize(ctx: Context<Initialize>, decimal: u8) -> Result<()> {
+        ctx.accounts.initialize(decimal, &ctx.bumps)
     }
 }
