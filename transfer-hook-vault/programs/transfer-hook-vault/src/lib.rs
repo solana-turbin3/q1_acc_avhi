@@ -27,4 +27,8 @@ pub mod transfer_hook_vault {
     pub fn remove_user(ctx: Context<RemoveUser>, address: Pubkey) -> Result<()> {
         ctx.accounts.remove_user(address)
     }
+
+    pub fn init_extra_acc_meta(ctx: Context<InitExtraAccountMeta>) -> Result<()> {
+        ctx.accounts.init_extra_account_meta(&ctx.bumps)
+    }
 }

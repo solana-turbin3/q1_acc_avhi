@@ -10,4 +10,6 @@ pub enum ErrorCode {
     ExtensionInitializationFailed,
     #[msg("Unauthorized")]
     Unauthorized,
+    #[msg("Failed to create extra account meta")]
+    ExtraAccountMetaError,
 }
