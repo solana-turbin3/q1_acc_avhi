@@ -6592,6 +6592,8 @@ dependencies = [
  "solana-signer 3.0.0",
  "solana-system-interface 3.0.0",
  "solana-transaction 3.0.2",
+ "spl-discriminator 0.5.1",
+ "spl-tlv-account-resolution 0.11.1",
  "spl-token-2022",
  "spl-transfer-hook-interface 2.1.0",
 ]
