@@ -10,10 +10,13 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
+use spl_discriminator::SplDiscriminate;
+
 declare_id!("3n16mCbPsep8awDkznTGPNDFnJAKhgGRDEcsExX7G33S");
 
 #[program]
 pub mod transfer_hook_vault {
+
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>, decimal: u8) -> Result<()> {
@@ -30,5 +33,10 @@ pub mod transfer_hook_vault {
 
     pub fn init_extra_acc_meta(ctx: Context<InitExtraAccountMeta>) -> Result<()> {
         ctx.accounts.init_extra_account_meta(&ctx.bumps)
+    }
+
+    #[instruction(discriminator = spl_transfer_hook_interface::instruction::ExecuteInstruction::SPL_DISCRIMINATOR_SLICE)]
+    pub fn transfer_hook(ctx: Context<TransferHook>, amount: u64) -> Result<()> {
+        ctx.accounts.transfer_hook(amount)
     }
 }

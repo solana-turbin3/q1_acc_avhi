@@ -20,7 +20,7 @@ custom-heap = []
 custom-panic = []
 
 [dependencies]
-anchor-lang = "0.32.1"
+anchor-lang = { version = "0.32.1", features = ["interface-instructions"] }
 anchor-spl = { version = "0.32.1", features = ["token_2022"] }
 spl-transfer-hook-interface = "2.1.0"
 spl-token-2022 = { version = "8.0.1", features = ["no-entrypoint"] }
