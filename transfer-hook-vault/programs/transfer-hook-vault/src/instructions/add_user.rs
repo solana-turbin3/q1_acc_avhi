@@ -1,20 +1,27 @@
 use anchor_lang::prelude::*;
 
-use crate::{UserAccount, WHITELIST_ENTRY};
+use crate::{error::ErrorCode, UserAccount, Vault, WHITELIST_ENTRY};
 
 #[derive(Accounts)]
 #[instruction(address: Pubkey)]
 pub struct AddUser<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
+
+    #[account(
+        has_one = admin @ ErrorCode::Unauthorized,
+    )]
+    pub vault: Account<'info, Vault>,
+
     #[account(
         init,
         payer = admin,
-        seeds = [WHITELIST_ENTRY.as_bytes(), address.key().as_ref()],
+        seeds = [WHITELIST_ENTRY.as_bytes(), address.as_ref()],
         bump,
         space = UserAccount::LEN,
-)]
+    )]
     pub user_account: Account<'info, UserAccount>,
+
     pub system_program: Program<'info, System>,
 }
 

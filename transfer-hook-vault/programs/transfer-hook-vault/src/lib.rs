@@ -23,4 +23,8 @@ pub mod transfer_hook_vault {
     pub fn add_user(ctx: Context<AddUser>, address: Pubkey) -> Result<()> {
         ctx.accounts.add_user(address, &ctx.bumps)
     }
+
+    pub fn remove_user(ctx: Context<RemoveUser>, address: Pubkey) -> Result<()> {
+        ctx.accounts.remove_user(address)
+    }
 }
