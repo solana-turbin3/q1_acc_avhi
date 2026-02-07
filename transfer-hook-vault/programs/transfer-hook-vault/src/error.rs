@@ -12,4 +12,8 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Failed to create extra account meta")]
     ExtraAccountMetaError,
+    #[msg("Insufficient funds")]
+    InsufficientFunds,
+    #[msg("Arithmetic overflow")]
+    Overflow,
 }

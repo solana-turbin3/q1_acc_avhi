@@ -39,4 +39,12 @@ pub mod transfer_hook_vault {
     pub fn transfer_hook(ctx: Context<TransferHook>, amount: u64) -> Result<()> {
         ctx.accounts.transfer_hook(amount)
     }
+
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+        ctx.accounts.deposit(amount)
+    }
+
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw(amount)
+    }
 }
