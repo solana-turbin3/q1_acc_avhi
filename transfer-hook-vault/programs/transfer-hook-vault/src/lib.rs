@@ -19,4 +19,8 @@ pub mod transfer_hook_vault {
     pub fn initialize(ctx: Context<Initialize>, decimal: u8) -> Result<()> {
         ctx.accounts.initialize(decimal, &ctx.bumps)
     }
+
+    pub fn add_user(ctx: Context<AddUser>, address: Pubkey) -> Result<()> {
+        ctx.accounts.add_user(address, &ctx.bumps)
+    }
 }
