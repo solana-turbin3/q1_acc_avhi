@@ -12,6 +12,7 @@ use crate::{error::ErrorCode, Vault, VAULT_CONFIG};
 pub struct Initialize<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
+
     #[account(
         init,
         payer = admin,
@@ -24,7 +25,9 @@ pub struct Initialize<'info> {
     /// CHECK: We will create and initialize this account manually
     #[account(mut, signer)]
     pub mint: AccountInfo<'info>,
+
     pub system_program: Program<'info, System>,
+
     pub token_program: Interface<'info, TokenInterface>,
 }
 
