@@ -19,8 +19,15 @@ pub mod transfer_hook_vault {
 
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, decimal: u8) -> Result<()> {
-        ctx.accounts.initialize(decimal, &ctx.bumps)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        decimal: u8,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        ctx.accounts
+            .initialize(decimal, name, symbol, uri, &ctx.bumps)
     }
 
     pub fn add_user(ctx: Context<AddUser>, address: Pubkey) -> Result<()> {

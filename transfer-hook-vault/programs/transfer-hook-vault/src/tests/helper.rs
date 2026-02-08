@@ -150,7 +150,13 @@ pub fn do_initialize(svm: &mut LiteSVM, admin: &Keypair) -> (Pubkey, Keypair, Pu
     let ix = Instruction {
         program_id: pubkey_to_addr(&PROGRAM_ID),
         accounts: convert_account_metas(accounts),
-        data: crate::instruction::Initialize { decimal: 9 }.data(),
+        data: crate::instruction::Initialize {
+            decimal: 9,
+            name: "Vault Token".to_string(),
+            symbol: "VAULT".to_string(),
+            uri: "https://vault.example.com".to_string(),
+        }
+        .data(),
     };
 
     send_ix(svm, ix, admin, &[&mint]);
