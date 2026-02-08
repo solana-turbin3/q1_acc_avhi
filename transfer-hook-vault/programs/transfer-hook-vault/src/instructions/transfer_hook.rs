@@ -45,14 +45,11 @@ impl<'info> TransferHook<'info> {
 
         require_keys_eq!(
             self.whitelist.account,
-            self.source_token.owner,
+            self.owner.key(),
             anchor_lang::error::ErrorCode::ConstraintOwner
         );
 
-        msg!(
-            "Transfer allowed: {} is whitelisted",
-            self.source_token.owner
-        );
+        msg!("Transfer allowed: {} is whitelisted", self.owner.key());
 
         Ok(())
     }
