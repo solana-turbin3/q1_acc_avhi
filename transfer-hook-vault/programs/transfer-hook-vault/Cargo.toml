@@ -47,3 +47,4 @@ solana-transaction = "3.0"
 solana-rpc-client = "2.3"
 spl-token-2022 = { version = "8.0.1", features = ["no-entrypoint"] }
 solana-clock = "~3.0"
+spl-associated-token-account = "6.0"
