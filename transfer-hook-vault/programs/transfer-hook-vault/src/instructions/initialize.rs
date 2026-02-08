@@ -1,10 +1,14 @@
 use anchor_lang::prelude::{program::invoke, system_instruction::create_account, *};
 use anchor_spl::token_interface::TokenInterface;
 use spl_token_2022::{
-    extension::{transfer_hook::instruction::initialize as init_transfer_hook, ExtensionType},
+    extension::{
+        metadata_pointer::instruction::initialize as init_metadata_pointer,
+        transfer_hook::instruction::initialize as init_transfer_hook, ExtensionType,
+    },
     instruction::initialize_mint2,
     state::Mint as Token2022Mint,
 };
+use spl_token_metadata_interface::instruction::initialize as init_token_metadata;
 
 use crate::{error::ErrorCode, Vault, VAULT_CONFIG};
 
@@ -32,24 +36,34 @@ pub struct Initialize<'info> {
 }
 
 impl<'info> Initialize<'info> {
-    pub fn initialize(&mut self, decimal: u8, bump: &InitializeBumps) -> Result<()> {
+    pub fn initialize(
+        &mut self,
+        decimal: u8,
+        name: String,
+        symbol: String,
+        uri: String,
+        bump: &InitializeBumps,
+    ) -> Result<()> {
         self.vault.set_inner(Vault {
             admin: self.admin.key(),
             mint: self.mint.key(),
             bump: bump.vault,
         });
 
-        let extension_type = vec![ExtensionType::TransferHook];
-        let space = ExtensionType::try_calculate_account_len::<Token2022Mint>(&extension_type)
-            .map_err(|_| ErrorCode::InvalidAccountSize)?;
+        let extension_types = vec![ExtensionType::TransferHook, ExtensionType::MetadataPointer];
+        let base_space =
+            ExtensionType::try_calculate_account_len::<Token2022Mint>(&extension_types)
+                .map_err(|_| ErrorCode::InvalidAccountSize)?;
 
-        let lamport = Rent::get()?.minimum_balance(space);
+        let metadata_space =
+            12 + 32 + 32 + (4 + name.len()) + (4 + symbol.len()) + (4 + uri.len()) + 4;
+        let lamport = Rent::get()?.minimum_balance(base_space + metadata_space);
 
         let create_ix = create_account(
             &self.admin.key(),
             &self.mint.key(),
             lamport,
-            space as u64,
+            base_space as u64,
             &self.token_program.key(),
         );
 
@@ -68,8 +82,15 @@ impl<'info> Initialize<'info> {
             Some(self.admin.key()),
             Some(crate::ID),
         )?;
-
         invoke(&init_hook_ix, &[self.mint.to_account_info()])?;
+
+        let init_meta_ptr_ix = init_metadata_pointer(
+            &self.token_program.key(),
+            &self.mint.key(),
+            Some(self.admin.key()),
+            Some(self.mint.key()),
+        )?;
+        invoke(&init_meta_ptr_ix, &[self.mint.to_account_info()])?;
 
         let init_mint_ix = initialize_mint2(
             &self.token_program.key(),
@@ -78,8 +99,22 @@ impl<'info> Initialize<'info> {
             Some(&self.admin.key()),
             decimal,
         )?;
-
         invoke(&init_mint_ix, &[self.mint.to_account_info()])?;
+
+        let init_metadata_ix = init_token_metadata(
+            &self.token_program.key(),
+            &self.mint.key(),
+            &self.admin.key(),
+            &self.mint.key(),
+            &self.admin.key(),
+            name,
+            symbol,
+            uri,
+        );
+        invoke(
+            &init_metadata_ix,
+            &[self.mint.to_account_info(), self.admin.to_account_info()],
+        )?;
 
         Ok(())
     }
