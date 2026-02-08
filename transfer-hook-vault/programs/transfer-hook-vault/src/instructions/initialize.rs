@@ -8,7 +8,10 @@ use spl_token_2022::{
     instruction::initialize_mint2,
     state::Mint as Token2022Mint,
 };
-use spl_token_metadata_interface::instruction::initialize as init_token_metadata;
+use spl_token_metadata_interface::{
+    instruction::initialize as init_token_metadata, state::TokenMetadata,
+};
+use spl_type_length_value::variable_len_pack::VariableLenPack;
 
 use crate::{error::ErrorCode, Vault, VAULT_CONFIG};
 
@@ -55,8 +58,15 @@ impl<'info> Initialize<'info> {
             ExtensionType::try_calculate_account_len::<Token2022Mint>(&extension_types)
                 .map_err(|_| ErrorCode::InvalidAccountSize)?;
 
-        let metadata_space =
-            12 + 32 + 32 + (4 + name.len()) + (4 + symbol.len()) + (4 + uri.len()) + 4;
+        let token_metadata = TokenMetadata {
+            name: name.clone(),
+            symbol: symbol.clone(),
+            uri: uri.clone(),
+            ..Default::default()
+        };
+
+        let metadata_space = token_metadata.get_packed_len()? + 8;
+
         let lamport = Rent::get()?.minimum_balance(base_space + metadata_space);
 
         let create_ix = create_account(
