@@ -17,19 +17,17 @@ pub struct UpdateCommit<'info> {
 }
 
 impl<'info> UpdateCommit<'info> {
-    
     pub fn update_commit(&mut self, new_data: u64) -> Result<()> {
-
         // Update the data field
         self.user_account.data = new_data;
 
         commit_accounts(
-            &self.user.to_account_info(), 
-            vec![&self.user_account.to_account_info()], 
-            &self.magic_context, 
-            &self.magic_program
+            &self.user.to_account_info(),
+            vec![&self.user_account.to_account_info()],
+            &self.magic_context,
+            &self.magic_program,
         )?;
-        
+
         Ok(())
     }
 }

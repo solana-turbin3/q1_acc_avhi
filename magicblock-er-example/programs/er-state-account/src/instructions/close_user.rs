@@ -17,7 +17,6 @@ pub struct CloseUser<'info> {
 }
 
 impl<'info> CloseUser<'info> {
-    
     pub fn close(&mut self) -> Result<()> {
         // All the closing logic is handled by the `close` constraint in the Accounts struct
         Ok(())

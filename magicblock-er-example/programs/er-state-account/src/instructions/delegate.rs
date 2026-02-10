@@ -21,9 +21,7 @@ pub struct Delegate<'info> {
 }
 
 impl<'info> Delegate<'info> {
-    
     pub fn delegate(&mut self) -> Result<()> {
-
         let pda_seeds: &[&[u8]] = &[
             b"user",
             self.user.key.as_ref(),
@@ -31,12 +29,12 @@ impl<'info> Delegate<'info> {
         ];
 
         self.delegate_user_account(
-            &self.user, 
-            pda_seeds, 
+            &self.user,
+            pda_seeds,
             DelegateConfig {
                 validator: Some(self.validator.key()),
                 ..DelegateConfig::default()
-            }
+            },
         )?;
 
         Ok(())

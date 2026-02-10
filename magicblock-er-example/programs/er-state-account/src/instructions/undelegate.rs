@@ -18,16 +18,14 @@ pub struct Undelegate<'info> {
 }
 
 impl<'info> Undelegate<'info> {
-    
     pub fn undelegate(&mut self) -> Result<()> {
-
         //self.user_account.exit(&crate::ID)?;
 
         commit_and_undelegate_accounts(
-            &self.user.to_account_info(), 
-            vec![&self.user_account.to_account_info()], 
-            &self.magic_context, 
-            &self.magic_program
+            &self.user.to_account_info(),
+            vec![&self.user_account.to_account_info()],
+            &self.magic_context,
+            &self.magic_program,
         )?;
 
         Ok(())

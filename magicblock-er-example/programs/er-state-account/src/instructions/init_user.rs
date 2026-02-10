@@ -19,12 +19,12 @@ pub struct InitUser<'info> {
 
 impl<'info> InitUser<'info> {
     pub fn initialize(&mut self, bumps: &InitUserBumps) -> Result<()> {
-        self.user_account.set_inner(UserAccount { 
-            user: *self.user.key, 
-            data: 0, 
-            bump: bumps.user_account 
+        self.user_account.set_inner(UserAccount {
+            user: *self.user.key,
+            data: 0,
+            bump: bumps.user_account,
         });
-        
+
         Ok(())
     }
 }

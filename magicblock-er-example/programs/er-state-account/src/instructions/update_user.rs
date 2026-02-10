@@ -15,10 +15,9 @@ pub struct UpdateUser<'info> {
 
 impl<'info> UpdateUser<'info> {
     pub fn update(&mut self, new_data: u64) -> Result<()> {
-
         // Update the data field
         self.user_account.data = new_data;
-        
+
         Ok(())
     }
 }
