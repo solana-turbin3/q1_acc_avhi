@@ -652,15 +652,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
-name = "er-state-account"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "ephemeral-rollups-sdk",
- "ephemeral-vrf-sdk",
-]
-
-[[package]]
 name = "feature-probe"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -891,6 +882,15 @@ dependencies = [
  "bincode",
  "serde",
  "solana-program",
+]
+
+[[package]]
+name = "magicblock-vrf"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "ephemeral-rollups-sdk",
+ "ephemeral-vrf-sdk",
 ]
 
 [[package]]

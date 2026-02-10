@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-er_state_account = "8aCdGD45uVcJLX1tBnNnm9eAgrUYsTxTAzq8rHLctwKT"
+magicblock_vrf = "7wKC68Du6AuGyDvCs4FNfBYDmqNYaYbKxnBt7E4sV4h8"
 
 [programs.devnet]
-er_state_account = "8aCdGD45uVcJLX1tBnNnm9eAgrUYsTxTAzq8rHLctwKT"
+magicblock_vrf = "7wKC68Du6AuGyDvCs4FNfBYDmqNYaYbKxnBt7E4sV4h8"
 
 [registry]
 url = "https://api.apr.dev"

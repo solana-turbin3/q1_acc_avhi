@@ -9,11 +9,11 @@ mod state;
 
 use instructions::*;
 
-declare_id!("8aCdGD45uVcJLX1tBnNnm9eAgrUYsTxTAzq8rHLctwKT");
+declare_id!("7wKC68Du6AuGyDvCs4FNfBYDmqNYaYbKxnBt7E4sV4h8");
 
 #[ephemeral]
 #[program]
-pub mod er_state_account {
+pub mod magicblock_vrf {
 
     use super::*;
 

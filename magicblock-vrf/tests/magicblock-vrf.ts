@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { GetCommitmentSignature } from "@magicblock-labs/ephemeral-rollups-sdk";
-import { ErStateAccount } from "../target/types/er_state_account";
+import { MagicblockVrf } from "../target/types/magicblock_vrf";
 
 const DEFAULT_QUEUE = new PublicKey(
   "Cuj97ggrhhidhbu39TijNVqE74xvKJ69gDervRUXAxGh"
@@ -11,7 +11,7 @@ const DEFAULT_EPHEMERAL_QUEUE = new PublicKey(
   "5hBR571xnXppuCPveTrctfTU7tJLSN94nq7kv7FRK5Tc"
 );
 
-describe("er-state-account", () => {
+describe("magicblock-vrf", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
@@ -26,7 +26,7 @@ describe("er-state-account", () => {
     anchor.Wallet.local()
   );
 
-  const program = anchor.workspace.erStateAccount as Program<ErStateAccount>;
+  const program = anchor.workspace.magicblockVrf as Program<MagicblockVrf>;
 
   const userAccount = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("user"), anchor.Wallet.local().publicKey.toBuffer()],

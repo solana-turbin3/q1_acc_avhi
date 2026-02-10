@@ -1,12 +1,12 @@
 [package]
-name = "er-state-account"
+name = "magicblock-vrf"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "er_state_account"
+name = "magicblock_vrf"
 
 [features]
 default = []
