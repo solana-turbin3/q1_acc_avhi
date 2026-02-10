@@ -2,7 +2,7 @@ build:
 	anchor build
 
 test:
-	anchor test
+	anchor test --skip-build --skip-deploy
 
 clean:
 	cargo clean
