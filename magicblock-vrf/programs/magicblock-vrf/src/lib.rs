@@ -53,8 +53,8 @@ pub mod magicblock_vrf {
         Ok(())
     }
 
-    pub fn request_randomness(ctx: Context<RequestRandomnessCtx>, client_seed: u8) -> Result<()> {
-        ctx.accounts.request_randomness(client_seed)?;
+    pub fn request_randomness(ctx: Context<RequestRandomnessCtx>) -> Result<()> {
+        ctx.accounts.request_randomness()?;
 
         Ok(())
     }

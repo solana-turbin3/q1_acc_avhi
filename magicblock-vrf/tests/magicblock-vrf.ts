@@ -17,7 +17,8 @@ describe("magicblock-vrf", () => {
 
   const providerEphemeralRollup = new anchor.AnchorProvider(
     new anchor.web3.Connection(
-      process.env.EPHEMERAL_PROVIDER_ENDPOINT || "https://devnet.magicblock.app/",
+      process.env.EPHEMERAL_PROVIDER_ENDPOINT ||
+        "https://devnet.magicblock.app/",
       {
         wsEndpoint:
           process.env.EPHEMERAL_WS_ENDPOINT || "wss://devnet.magicblock.app/",
@@ -39,11 +40,19 @@ describe("magicblock-vrf", () => {
     );
     console.log("------------------------------------------------------------");
     console.log("  Base Layer RPC   :", provider.connection.rpcEndpoint);
-    console.log("  Ephemeral RPC    :", providerEphemeralRollup.connection.rpcEndpoint);
-    console.log("  Wallet           :", anchor.Wallet.local().publicKey.toBase58());
+    console.log(
+      "  Ephemeral RPC    :",
+      providerEphemeralRollup.connection.rpcEndpoint
+    );
+    console.log(
+      "  Wallet           :",
+      anchor.Wallet.local().publicKey.toBase58()
+    );
     console.log("  Balance          :", balance / LAMPORTS_PER_SOL, "SOL");
     console.log("  User Account PDA :", userAccount.toBase58());
-    console.log("------------------------------------------------------------\n");
+    console.log(
+      "------------------------------------------------------------\n"
+    );
   });
 
   it("Initialize user account", async () => {
@@ -64,7 +73,7 @@ describe("magicblock-vrf", () => {
 
   it("[Task 1] Request randomness on base layer", async () => {
     const tx = await program.methods
-      .requestRandomness(1)
+      .requestRandomness()
       .accountsPartial({ oracleQueue: DEFAULT_QUEUE })
       .rpc({ skipPreflight: true });
 
@@ -97,7 +106,7 @@ describe("magicblock-vrf", () => {
     ) as typeof program;
 
     let tx = await ephemeralProgram.methods
-      .requestRandomness(2)
+      .requestRandomness()
       .accountsPartial({ oracleQueue: DEFAULT_EPHEMERAL_QUEUE })
       .transaction();
 
