@@ -58,7 +58,7 @@ pub struct InitUser<'info> {
 
 ### 2. Request Randomness
 
-Submits a VRF randomness request via CPI to the VRF program. The `client_seed` is used to derive a unique request PDA, preventing collisions across multiple calls.
+Submits a VRF randomness request via CPI to the VRF program. The seed is derived on-chain from `Clock::get()` (slot + unix_timestamp) and the payer's public key, ensuring uniqueness across multiple calls without requiring any client input.
 
 ```rust
 #[vrf]
@@ -140,7 +140,7 @@ Closes the `UserAccount` PDA and returns rent lamports to the user.
 
 ```
 1. initialize()                        -> Create UserAccount on base layer
-2. request_randomness(seed, queue)     -> CPI to VRF program, oracle queues request
+2. request_randomness(queue)           -> CPI to VRF program, oracle queues request
 3. [oracle callback]                   -> consume_randomness() writes random u64 to data
 ```
 
@@ -149,7 +149,7 @@ Closes the `UserAccount` PDA and returns rent lamports to the user.
 ```
 1. initialize()                        -> Create UserAccount on base layer
 2. delegate()                          -> Delegate UserAccount to ephemeral rollup
-3. request_randomness(seed, er_queue)  -> CPI to VRF program inside ER
+3. request_randomness(er_queue)        -> CPI to VRF program inside ER
 4. [oracle callback]                   -> consume_randomness() writes random u64 to data
 5. undelegate()                        -> Commit final state back to base layer
 ```
@@ -160,6 +160,6 @@ Closes the `UserAccount` PDA and returns rent lamports to the user.
 
 **Two-transaction pattern**: VRF always requires two separate transactions. The first submits the request; the second is the oracle callback. You cannot request and consume randomness in the same transaction.
 
-**client_seed**: A `u8` value expanded to `[client_seed; 32]` to derive a unique request PDA for each call. Using a fixed value like zero causes PDA collisions on repeated calls.
+**On-chain seed derivation**: The request seed is derived inside the program using `Clock::get()` (slot + unix_timestamp) combined with the first 8 bytes of the payer's public key. This produces a unique `[u8; 32]` seed per call without any client input, preventing PDA collisions.
 
 **Queue selection**: The base layer and ephemeral rollup use different oracle queues. Pass the correct queue from the client since the program accepts either.
