@@ -2831,6 +2831,14 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "tuktuk-program",
+]
+
+[[package]]
+name = "tuktuk-program"
+version = "0.3.2"
+dependencies = [
+ "anchor-lang",
 ]
 
 [[package]]
