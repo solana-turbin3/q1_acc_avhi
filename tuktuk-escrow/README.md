@@ -193,9 +193,11 @@ pub struct AutoRefund<'info> {
 
 ### 5. Schedule
 
-Called by the maker after `make` to register a TukTuk task that will fire `auto_refund` at exactly `expires_at`. Uses a raw CPI to TukTuk's `queue_task_v0` with `TriggerV0::Timestamp(expires_at)`.
+Called by the maker after `make` to register a TukTuk task that will fire `auto_refund` at exactly `expires_at`. Uses a CPI to TukTuk's `queue_task_v0` with `TriggerV0::Timestamp(expires_at)`.
 
-No `tuktuk-program` Rust crate is needed — the CPI is built manually using Borsh serialization, avoiding anchor version conflicts.
+The `tuktuk-program` crate is referenced via a local path (`../../../../tuktuk/tuktuk-program`) and used to call `tuktuk_program::compile_transaction` which serializes the `auto_refund` instruction into TukTuk's `CompiledTransactionV0` format.
+
+> **Note:** TukTuk's published crate targets Anchor 0.31.1 and is incompatible with Anchor 0.32.1. To work around this, the `tuktuk-program` repo is forked locally and the Anchor dependency manually bumped to 0.32.1. The local path reference in `Cargo.toml` points to that fork.
 
 ```rust
 #[derive(Accounts)]
@@ -310,8 +312,30 @@ The `test:devnet` script (`scripts/setup-and-run.ts`) does everything in one sho
 1. Creates `mint_a` and `mint_b`
 2. Mints tokens to the maker's ATA
 3. Calls `make` - escrow opens, tokens locked in vault
-4. Calls `schedule` - TukTuk task queued with timestamp trigger
+4. Calls `schedule` - TukTuk one-shot task queued with `TriggerV0::Timestamp(expires_at)`
 5. Polls every 5 seconds and confirms when TukTuk fires `auto_refund`
+
+### Cron alternative
+
+Instead of a one-shot timestamp task, `cron/cron.ts` sets up a **recurring cron job** (every minute) that calls `auto_refund`. The instruction is idempotent — it fails with `EscrowNotExpired` until the escrow actually expires, then succeeds once.
+
+```bash
+yarn cron \
+  --cronName my-escrow-cron \
+  --queueName escrow-tuktuk \
+  --walletPath ~/.config/solana/id.json \
+  --rpcUrl https://api.devnet.solana.com \
+  --maker <MAKER_PUBKEY> \
+  --mintA <MINT_A_PUBKEY> \
+  --escrowSeed <SEED> \
+  --fundingAmount 10000000
+```
+
+To stop the cron job once the escrow is settled, use the TukTuk CLI:
+
+```bash
+tuktuk -u https://api.devnet.solana.com -w ~/.config/solana/id.json cron close --name my-escrow-cron
+```
 
 ---
 
