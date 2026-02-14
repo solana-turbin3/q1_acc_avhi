@@ -74,12 +74,27 @@ impl<'info> Schedule<'info> {
             program_id: crate::ID,
             accounts: vec![
                 anchor_lang::solana_program::instruction::AccountMeta::new(self.maker.key(), false),
-                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(self.mint_a.key(), false),
-                anchor_lang::solana_program::instruction::AccountMeta::new(self.maker_ata_a.key(), false),
-                anchor_lang::solana_program::instruction::AccountMeta::new(self.escrow.key(), false),
+                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(
+                    self.mint_a.key(),
+                    false,
+                ),
+                anchor_lang::solana_program::instruction::AccountMeta::new(
+                    self.maker_ata_a.key(),
+                    false,
+                ),
+                anchor_lang::solana_program::instruction::AccountMeta::new(
+                    self.escrow.key(),
+                    false,
+                ),
                 anchor_lang::solana_program::instruction::AccountMeta::new(self.vault.key(), false),
-                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(self.token_program.key(), false),
-                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(self.system_program.key(), false),
+                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(
+                    self.token_program.key(),
+                    false,
+                ),
+                anchor_lang::solana_program::instruction::AccountMeta::new_readonly(
+                    self.system_program.key(),
+                    false,
+                ),
             ],
             data: AUTO_REFUND_DISCRIMINATOR.to_vec(),
         };

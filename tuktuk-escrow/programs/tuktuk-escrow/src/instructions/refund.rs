@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{close_account, transfer, CloseAccount, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{
+    close_account, transfer, CloseAccount, Mint, Token, TokenAccount, Transfer,
+};
 
 use crate::constants::ESCROW_SEED;
 use crate::state::Escrow;
@@ -60,6 +62,10 @@ impl<'info> Refund<'info> {
             destination: self.maker.to_account_info(),
             authority: self.escrow.to_account_info(),
         };
-        close_account(CpiContext::new_with_signer(cpi_program, cpi_accounts, &signer_seeds))
+        close_account(CpiContext::new_with_signer(
+            cpi_program,
+            cpi_accounts,
+            &signer_seeds,
+        ))
     }
 }
