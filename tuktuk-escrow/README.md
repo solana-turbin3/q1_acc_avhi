@@ -197,7 +197,7 @@ Called by the maker after `make` to register a TukTuk task that will fire `auto_
 
 The `tuktuk-program` crate is referenced via a local path (`../../../../tuktuk/tuktuk-program`) and used to call `tuktuk_program::compile_transaction` which serializes the `auto_refund` instruction into TukTuk's `CompiledTransactionV0` format.
 
-> **Note:** TukTuk's published crate targets Anchor 0.31.1 and is incompatible with Anchor 0.32.1. To work around this, the `tuktuk-program` repo is forked locally and the Anchor dependency manually bumped to 0.32.1. The local path reference in `Cargo.toml` points to that fork.
+> **Note:** TukTuk's published crate targets Anchor 0.31.1 and is incompatible with Anchor 0.32.1. To work around this, `tuktuk-program` is pulled from a fork with the Anchor dependency manually bumped to 0.32.1: [`AvhiMaz/tuktuk @ chore/bump-versions`](https://github.com/AvhiMaz/tuktuk/tree/chore/bump-versions).
 
 ```rust
 #[derive(Accounts)]
