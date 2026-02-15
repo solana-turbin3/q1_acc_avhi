@@ -20,4 +20,9 @@ pub mod gpt_oracle {
 
         Ok(())
     }
+
+    pub fn interact_with_llm(ctx: Context<Interact>, text: String) -> Result<()> {
+        ctx.accounts.interact_with_llm(text)?;
+        Ok(())
+    }
 }
