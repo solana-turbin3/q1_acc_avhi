@@ -22,6 +22,7 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "0.32.1"
+solana-gpt-oracle = { git = "https://github.com/magicblock-labs/super-smart-contracts", features = ["cpi"] }
 
 
 [lints.rust]

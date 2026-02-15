@@ -15,7 +15,9 @@ declare_id!("FNqrsbRyGXncjGoqadVFqpQDQfKt2pNcZTvUpGr1h3g2");
 pub mod gpt_oracle {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
+    pub fn initialize(ctx: Context<Initialize>, text: String) -> Result<()> {
+        ctx.accounts.create_llm_context(text, &ctx.bumps)?;
+
+        Ok(())
     }
 }

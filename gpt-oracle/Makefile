@@ -8,7 +8,7 @@ test:
 	yarn test:devnet
 
 clean:
-	cargo clean
+	rm -rf Cargo.lock && cargo clean
 
 format:
 	cargo +nightly fmt --all
