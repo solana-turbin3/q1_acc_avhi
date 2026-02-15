@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("EWTRkd34BihiCCWW5Xtr1ff3RZjub8Q5TQ8Khb5cBbXJ");
+declare_id!("8d6wKSQNNoqSu98EgLn5ZotmJMZHq8cgcfLGsiubUqZe");
 
 #[program]
 pub mod gpt_oracle {
@@ -29,5 +29,9 @@ pub mod gpt_oracle {
     pub fn callback_from_llm(ctx: Context<Callback>, response: String) -> Result<()> {
         ctx.accounts.callback_from_llm(response)?;
         Ok(())
+    }
+
+    pub fn schedule(ctx: Context<Schedule>, task_id: u16) -> Result<()> {
+        ctx.accounts.schedule(task_id, &ctx.bumps)
     }
 }
