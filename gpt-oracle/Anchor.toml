@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-gpt_oracle = "EWTRkd34BihiCCWW5Xtr1ff3RZjub8Q5TQ8Khb5cBbXJ"
+gpt_oracle = "8d6wKSQNNoqSu98EgLn5ZotmJMZHq8cgcfLGsiubUqZe"
 
 [registry]
 url = "https://api.apr.dev"
