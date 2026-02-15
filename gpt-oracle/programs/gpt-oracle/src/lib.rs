@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("FNqrsbRyGXncjGoqadVFqpQDQfKt2pNcZTvUpGr1h3g2");
+declare_id!("EWTRkd34BihiCCWW5Xtr1ff3RZjub8Q5TQ8Khb5cBbXJ");
 
 #[program]
 pub mod gpt_oracle {
