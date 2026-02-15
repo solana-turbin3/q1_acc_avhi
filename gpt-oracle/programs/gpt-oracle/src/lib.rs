@@ -25,4 +25,9 @@ pub mod gpt_oracle {
         ctx.accounts.interact_with_llm(text)?;
         Ok(())
     }
+
+    pub fn callback_from_llm(ctx: Context<Callback>, response: String) -> Result<()> {
+        ctx.accounts.callback_from_llm(response)?;
+        Ok(())
+    }
 }

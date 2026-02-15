@@ -1,3 +1,4 @@
+use crate::instruction;
 use anchor_lang::prelude::*;
 use solana_gpt_oracle::{cpi::accounts::InteractWithLlm, ContextAccount};
 
@@ -40,11 +41,9 @@ impl<'info> Interact<'info> {
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_acc);
 
-        let desc: [u8; 8] = [0u8; 8]; // dummy for build pass
-
-        // let desc = instruction::CallbackFromAgent::DISCRIMINATOR
-        //     .try_into()
-        //     .expect("Must be 8 bytes");
+        let desc = instruction::CallbackFromLlm::DISCRIMINATOR
+            .try_into()
+            .expect("Must be 8 bytes");
 
         solana_gpt_oracle::cpi::interact_with_llm(cpi_ctx, text, ID, desc, None)?;
         Ok(())
