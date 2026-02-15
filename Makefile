@@ -4,5 +4,6 @@ format:
 	cd transfer-hook-vault && cargo +nightly fmt --all
 	cd magicblock-vrf && cargo +nightly fmt --all
 	cd tuktuk-escrow && cargo +nightly fmt --all
+	cd gpt-oracle && cargo +nightly fmt --all
 
 .PHONY: format
