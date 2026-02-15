@@ -23,3 +23,7 @@ A trustless token escrow program with automated expiry refunds powered by [TukTu
 ### [GPT Oracle](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/gpt-oracle)
 
 A Solana program that queries an on-chain AI oracle (powered by [MagicBlock](https://magicblock.gg)) and schedules those queries automatically using [TukTuk](https://www.tuktuk.fun). An agent is initialized with a system prompt via CPI to the oracle's `create_llm_context`. TukTuk's crankers automatically fire `interact_with_llm` on a schedule, the oracle processes the query off-chain via GPT, and calls back into the program with the response via the `callback_from_llm` instruction. Deployed and tested end-to-end on devnet.
+
+### [Pyth Scheduler](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/pyth-scheduler)
+
+A Solana program that fetches the SOL/USD price from [Pyth](https://pyth.network)'s pull oracle and stores it on-chain, with automated recurring updates powered by [TukTuk](https://www.tuktuk.fun). Uses the pull oracle model - the latest signed price is fetched from Hermes and posted to the Pyth Receiver program before being read. TukTuk's crankers automatically call `update_price` on a schedule to keep the stored price fresh. Deployed and tested end-to-end on devnet.
