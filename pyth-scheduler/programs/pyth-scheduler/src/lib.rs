@@ -18,4 +18,8 @@ pub mod pyth_scheduler {
     pub fn update_price(ctx: Context<UpdatePrice>) -> Result<()> {
         ctx.accounts.update_price(&ctx.bumps)
     }
+
+    pub fn schedule(ctx: Context<Schedule>, task_id: u16) -> Result<()> {
+        ctx.accounts.schedule(task_id, &ctx.bumps)
+    }
 }

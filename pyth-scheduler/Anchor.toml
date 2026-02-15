@@ -8,11 +8,14 @@ skip-lint = false
 [programs.localnet]
 pyth_scheduler = "8iCfkBsLg5G7HkJZt95KnutdyqnpFuUdAskwMjiupDzu"
 
+[programs.devnet]
+pyth_scheduler = "8iCfkBsLg5G7HkJZt95KnutdyqnpFuUdAskwMjiupDzu"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

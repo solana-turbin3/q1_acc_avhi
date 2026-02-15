@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
 
-use crate::{PriceStore, PRICE, SOL_USD_FEED};
+use crate::{PriceStore, PRICE, SOL_USD_FEED_ID};
 
 #[derive(Accounts)]
 pub struct UpdatePrice<'info> {
@@ -17,26 +17,16 @@ pub struct UpdatePrice<'info> {
     )]
     pub price_store: Account<'info, PriceStore>,
 
-    /// CHECK: Pyth price feed account, address constrained
-    #[account(address = SOL_USD_FEED)]
-    pub price_feed: AccountInfo<'info>,
+    pub price_feed: Account<'info, PriceUpdateV2>,
 
     pub system_program: Program<'info, System>,
 }
 
 impl<'info> UpdatePrice<'info> {
     pub fn update_price(&mut self, bumps: &UpdatePriceBumps) -> Result<()> {
-        let price_update = PriceUpdateV2::try_deserialize(
-            &mut self.price_feed.data.borrow().as_ref(),
-        )?;
+        let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID)?;
 
-        let price = price_update.get_price_no_older_than(
-            &Clock::get()?,
-            60,
-            &get_feed_id_from_hex(
-                "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
-            )?,
-        )?;
+        let price = self.price_feed.get_price_no_older_than(&Clock::get()?, 300, &feed_id)?;
 
         self.price_store.set_inner(PriceStore {
             price: price.price,
@@ -46,11 +36,7 @@ impl<'info> UpdatePrice<'info> {
             bump: bumps.price_store,
         });
 
-        msg!(
-            "SOL/USD price updated: {} * 10^{}",
-            price.price,
-            price.exponent
-        );
+        msg!("SOL/USD price updated: {} * 10^{}", price.price, price.exponent);
 
         Ok(())
     }
