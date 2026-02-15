@@ -19,3 +19,7 @@ A Solana program that integrates MagicBlock's Verifiable Random Function (VRF) t
 ### [TukTuk Escrow](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/tuktuk-escrow)
 
 A trustless token escrow program with automated expiry refunds powered by [TukTuk](https://www.tuktuk.fun) - a permissionless crank scheduler on Solana. The maker deposits Token A and specifies how much Token B they want in return. A taker can fulfill the trade before the escrow expires. If no taker shows up, TukTuk's crankers automatically call `auto_refund` at expiry and return the maker's tokens - no manual intervention needed. Deployed and tested end-to-end on devnet.
+
+### [GPT Oracle](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/gpt-oracle)
+
+A Solana program that queries an on-chain AI oracle (powered by [MagicBlock](https://magicblock.gg)) and schedules those queries automatically using [TukTuk](https://www.tuktuk.fun). An agent is initialized with a system prompt via CPI to the oracle's `create_llm_context`. TukTuk's crankers automatically fire `interact_with_llm` on a schedule, the oracle processes the query off-chain via GPT, and calls back into the program with the response via the `callback_from_llm` instruction. Deployed and tested end-to-end on devnet.
