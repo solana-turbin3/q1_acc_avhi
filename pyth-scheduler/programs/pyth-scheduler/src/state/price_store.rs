@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[account]
+#[derive(InitSpace)]
 pub struct PriceStore {
     pub price: i64,        // the price value
     pub exponent: i32,     // price * 10^exponent = actual price

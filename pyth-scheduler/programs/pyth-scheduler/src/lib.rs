@@ -15,7 +15,7 @@ declare_id!("8iCfkBsLg5G7HkJZt95KnutdyqnpFuUdAskwMjiupDzu");
 pub mod pyth_scheduler {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
+    pub fn update_price(ctx: Context<UpdatePrice>) -> Result<()> {
+        ctx.accounts.update_price(&ctx.bumps)
     }
 }

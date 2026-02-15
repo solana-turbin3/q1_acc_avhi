@@ -1,3 +1,3 @@
-pub mod price;
+pub mod price_store;
 
-pub use price::*;
+pub use price_store::*;
