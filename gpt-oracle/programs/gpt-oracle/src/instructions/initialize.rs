@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use solana_gpt_oracle::{cpi::create_llm_context, Counter};
 
-use crate::Agent;
+use crate::{Agent, AGENT, AGENT_DESC};
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -12,7 +12,7 @@ pub struct Initialize<'info> {
         init,
         payer = payer,
         space = 8 + 32 + 1,
-        seeds = [b"agent", payer.key().as_ref()],
+        seeds = [AGENT.as_bytes(),  payer.key().as_ref()],
         bump
     )]
     pub agent: Account<'info, Agent>,
@@ -32,7 +32,7 @@ pub struct Initialize<'info> {
 }
 
 impl<'info> Initialize<'info> {
-    pub fn create_llm_context(&mut self, text: String, bumps: &InitializeBumps) -> Result<()> {
+    pub fn create_llm_context(&mut self, bumps: &InitializeBumps) -> Result<()> {
         self.agent.set_inner(Agent {
             context: self.llm_context.key(),
             bump: bumps.agent,
@@ -47,7 +47,7 @@ impl<'info> Initialize<'info> {
         };
 
         let cpi_ctx = CpiContext::new(cpi_program, cpi_acc);
-        create_llm_context(cpi_ctx, text)?;
+        create_llm_context(cpi_ctx, AGENT_DESC.to_string())?;
 
         Ok(())
     }

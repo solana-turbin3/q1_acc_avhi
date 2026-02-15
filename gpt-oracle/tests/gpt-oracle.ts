@@ -63,7 +63,7 @@ describe("gpt-oracle", () => {
       const [llmContextPda] = getLlmContextPda(count);
 
       const tx = await program.methods
-        .initialize("who are you?")
+        .initialize()
         .accountsPartial({
           payer: wallet.publicKey,
           agent: agentPda,
@@ -87,7 +87,7 @@ describe("gpt-oracle", () => {
       const [interactionPda] = getInteractionPda(llmContextPda);
 
       const tx = await program.methods
-        .interactWithLlm("What is Solana?")
+        .interactWithLlm()
         .accountsPartial({
           interaction: interactionPda,
           payer: wallet.publicKey,

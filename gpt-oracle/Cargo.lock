@@ -855,6 +855,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "solana-gpt-oracle",
+ "tuktuk-program",
 ]
 
 [[package]]
@@ -3181,6 +3182,14 @@ name = "toml_write"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
+
+[[package]]
+name = "tuktuk-program"
+version = "0.3.2"
+source = "git+https://github.com/AvhiMaz/tuktuk?branch=chore%2Fbump-versions#e5b5440741c62b4d95149b3ba0677dea7edca85d"
+dependencies = [
+ "anchor-lang",
+]
 
 [[package]]
 name = "typenum"

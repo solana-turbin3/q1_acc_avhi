@@ -15,14 +15,14 @@ declare_id!("EWTRkd34BihiCCWW5Xtr1ff3RZjub8Q5TQ8Khb5cBbXJ");
 pub mod gpt_oracle {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>, text: String) -> Result<()> {
-        ctx.accounts.create_llm_context(text, &ctx.bumps)?;
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        ctx.accounts.create_llm_context(&ctx.bumps)?;
 
         Ok(())
     }
 
-    pub fn interact_with_llm(ctx: Context<Interact>, text: String) -> Result<()> {
-        ctx.accounts.interact_with_llm(text)?;
+    pub fn interact_with_llm(ctx: Context<Interact>) -> Result<()> {
+        ctx.accounts.interact_with_llm()?;
         Ok(())
     }
 

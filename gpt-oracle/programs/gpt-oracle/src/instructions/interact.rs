@@ -1,4 +1,4 @@
-use crate::instruction;
+use crate::{instruction, AGENT, AGENT_DESC};
 use anchor_lang::prelude::*;
 use solana_gpt_oracle::{cpi::accounts::InteractWithLlm, ContextAccount};
 
@@ -14,7 +14,7 @@ pub struct Interact<'info> {
     pub interaction: AccountInfo<'info>,
 
     #[account(
-        seeds = [b"agent", payer.key().as_ref()],
+        seeds = [AGENT.as_bytes(),  payer.key().as_ref()],
         bump
     )]
     pub agent: Account<'info, Agent>,
@@ -30,7 +30,7 @@ pub struct Interact<'info> {
 }
 
 impl<'info> Interact<'info> {
-    pub fn interact_with_llm(&mut self, text: String) -> Result<()> {
+    pub fn interact_with_llm(&mut self) -> Result<()> {
         let cpi_program = self.oracle_program.to_account_info();
         let cpi_acc = InteractWithLlm {
             payer: self.payer.to_account_info(),
@@ -45,7 +45,7 @@ impl<'info> Interact<'info> {
             .try_into()
             .expect("Must be 8 bytes");
 
-        solana_gpt_oracle::cpi::interact_with_llm(cpi_ctx, text, ID, desc, None)?;
+        solana_gpt_oracle::cpi::interact_with_llm(cpi_ctx, AGENT_DESC.to_string(), ID, desc, None)?;
         Ok(())
     }
 }
