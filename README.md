@@ -27,3 +27,7 @@ A Solana program that queries an on-chain AI oracle (powered by [MagicBlock](htt
 ### [Pyth Scheduler](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/pyth-scheduler)
 
 A Solana program that fetches the SOL/USD price from [Pyth](https://pyth.network)'s pull oracle and stores it on-chain, with automated recurring updates powered by [TukTuk](https://www.tuktuk.fun). Uses the pull oracle model - the latest signed price is fetched from Hermes and posted to the Pyth Receiver program before being read. TukTuk's crankers automatically call `update_price` on a schedule to keep the stored price fresh. Deployed and tested end-to-end on devnet.
+
+### [Generic Storage](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/generic-storage)
+
+A generic storage system in Rust that serializes and deserializes data using three different formats: Borsh, Wincode, and JSON. Built around a `Serializer<T>` trait and a `Storage<T, S>` container that stores raw bytes internally and uses `PhantomData<T>` for zero-cost type tracking. Demonstrates generic traits, associated type constraints (`Src = T`, `Dst = T`), higher-ranked trait bounds (`for<'a>`), and the difference between `Deserialize<'de>` and `DeserializeOwned`.
