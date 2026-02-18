@@ -58,13 +58,52 @@ where
 fn main() {
     let mut queue: Queue<Todo> = Queue::load().unwrap_or_else(|_| Queue::new());
 
-    queue.enqueue(Todo {
-        id: 1,
-        description: "test".to_string(),
-        created_at: 0,
-    });
+    let args: Vec<String> = std::env::args().collect();
 
-    queue.save().unwrap();
+    match args.get(1).map(|s| s.as_str()) {
+        Some("add") => {
+            let todo = Todo {
+                id: (queue.len() + 1) as u64,
+                created_at: SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+                description: args.get(2).expect("provide a description").clone(),
+            };
+            queue.enqueue(todo);
+            queue.save().unwrap();
+        }
 
-    println!("saved! check if todos.bin exists");
+        Some("next") => match queue.peek() {
+            Some(todo) => println!("Next up: [{}] {}", todo.id, todo.description),
+            None => println!("No tasks!"),
+        },
+
+        Some("done") => {
+            if queue.is_empty() {
+                println!("No tasks to complete!");
+                return;
+            }
+            if let Some(todo) = queue.peek() {
+                println!("About to complete: {}", todo.description);
+            }
+            match queue.dequeue() {
+                Some(todo) => println!("Completed: [{}] {}", todo.id, todo.description),
+                None => println!("No tasks!"),
+            }
+            queue.save().unwrap();
+        }
+
+        Some("list") => {
+            if queue.is_empty() {
+                println!("No tasks!");
+                return;
+            }
+            for todo in &queue.items {
+                println!("[{}] {}", todo.id, todo.description);
+            }
+        }
+
+        _ => println!("Usage: Todo add | list | done"),
+    }
 }
