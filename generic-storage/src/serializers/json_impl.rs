@@ -4,7 +4,11 @@ use super::Serializer;
 
 pub struct SerdeJson;
 
-impl<T: Serialize + DeserializeOwned> Serializer<T> for SerdeJson {
+impl<T> Serializer<T> for SerdeJson
+where
+    T: Serialize,
+    T: DeserializeOwned,
+{
     fn to_bytes(&self, value: &T) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         serde_json::to_vec(value).map_err(|e| e.into())
     }

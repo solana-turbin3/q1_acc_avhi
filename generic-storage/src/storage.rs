@@ -8,7 +8,10 @@ pub struct Storage<T, S> {
     _marker: PhantomData<T>,
 }
 
-impl<T, S: Serializer<T>> Storage<T, S> {
+impl<T, S> Storage<T, S>
+where
+    S: Serializer<T>,
+{
     pub fn new(serializer: S) -> Self {
         Storage {
             data: None,

@@ -4,7 +4,11 @@ use super::Serializer;
 
 pub struct Borsh;
 
-impl<T: BorshSerialize + BorshDeserialize> Serializer<T> for Borsh {
+impl<T> Serializer<T> for Borsh
+where
+    T: BorshSerialize,
+    T: BorshDeserialize,
+{
     fn to_bytes(&self, value: &T) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         borsh::to_vec(value).map_err(|e| e.into())
     }
