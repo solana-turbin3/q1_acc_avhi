@@ -1,39 +1,53 @@
-use std::collections::VecDeque;
-
 use borsh::{BorshDeserialize, BorshSerialize};
 
 #[derive(Debug, BorshSerialize, BorshDeserialize)]
 pub struct Queue<T> {
-    pub items: VecDeque<T>,
+    inbox: Vec<T>,
+    outbox: Vec<T>,
     pub next_id: u64,
 }
 
 impl<T> Queue<T> {
     pub fn new() -> Self {
         Queue {
-            items: VecDeque::new(),
+            inbox: Vec::new(),
+            outbox: Vec::new(),
             next_id: 1,
         }
     }
 
     pub fn enqueue(&mut self, item: T) {
-        self.items.push_back(item)
+        self.inbox.push(item);
     }
 
     pub fn dequeue(&mut self) -> Option<T> {
-        self.items.pop_front()
+        if self.outbox.is_empty() {
+            while let Some(item) = self.inbox.pop() {
+                self.outbox.push(item);
+            }
+        }
+        self.outbox.pop()
     }
 
-    pub fn peek(&self) -> Option<&T> {
-        self.items.front()
+    pub fn peek(&mut self) -> Option<&T> {
+        if self.outbox.is_empty() {
+            while let Some(item) = self.inbox.pop() {
+                self.outbox.push(item);
+            }
+        }
+        self.outbox.last()
     }
 
     pub fn len(&self) -> usize {
-        self.items.len()
+        self.inbox.len() + self.outbox.len()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.items.is_empty()
+        self.inbox.is_empty() && self.outbox.is_empty()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.outbox.iter().rev().chain(self.inbox.iter())
     }
 }
 

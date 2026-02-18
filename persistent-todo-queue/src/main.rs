@@ -53,7 +53,7 @@ fn main() {
                 return;
             }
             println!("{} task(s) pending:", queue.len());
-            for todo in &queue.items {
+            for todo in queue.iter() {
                 println!("[{}] {}", todo.id, todo.description);
             }
         }
