@@ -1,4 +1,4 @@
-## Programs
+## Builds 
 
 ### [Whitelist Transfer Hook](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/whitelist-transfer-hook)
 
@@ -31,3 +31,7 @@ A Solana program that fetches the SOL/USD price from [Pyth](https://pyth.network
 ### [Generic Storage](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/generic-storage)
 
 A generic storage system in Rust that serializes and deserializes data using three different formats: Borsh, Wincode, and JSON. Built around a `Serializer<T>` trait and a `Storage<T, S>` container that stores raw bytes internally and uses `PhantomData<T>` for zero-cost type tracking. Demonstrates generic traits, associated type constraints (`Src = T`, `Dst = T`), higher-ranked trait bounds (`for<'a>`), and the difference between `Deserialize<'de>` and `DeserializeOwned`.
+
+### [Persistent Todo Queue](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/persistent-todo-queue)
+
+A CLI-based todo application in Rust that stores tasks in a FIFO queue and persists them to disk using Borsh serialization. Implements a generic `Queue<T>` using two stacks instead of `VecDeque` for amortized O(1) enqueue and dequeue. Tasks survive program restarts, IDs never repeat even after completion, and the queue is serialized to a binary file after every mutation.
