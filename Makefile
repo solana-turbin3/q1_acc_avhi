@@ -5,5 +5,8 @@ format:
 	cd magicblock-vrf && cargo +nightly fmt --all
 	cd tuktuk-escrow && cargo +nightly fmt --all
 	cd gpt-oracle && cargo +nightly fmt --all
+	cd pyth-scheduler && cargo +nightly fmt --all
+	cd generic-storage && cargo +nightly fmt --all
+	cd persistent-todo-queue && cargo +nightly fmt --all
 
 .PHONY: format

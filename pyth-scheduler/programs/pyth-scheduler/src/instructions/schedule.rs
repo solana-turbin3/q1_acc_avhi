@@ -86,7 +86,10 @@ impl<'info> Schedule<'info> {
             },
         )?;
 
-        msg!("Scheduled SOL/USD price update via TukTuk, task_id: {}", task_id);
+        msg!(
+            "Scheduled SOL/USD price update via TukTuk, task_id: {}",
+            task_id
+        );
 
         Ok(())
     }

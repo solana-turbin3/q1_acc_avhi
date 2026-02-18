@@ -26,7 +26,9 @@ impl<'info> UpdatePrice<'info> {
     pub fn update_price(&mut self, bumps: &UpdatePriceBumps) -> Result<()> {
         let feed_id = get_feed_id_from_hex(SOL_USD_FEED_ID)?;
 
-        let price = self.price_feed.get_price_no_older_than(&Clock::get()?, 300, &feed_id)?;
+        let price = self
+            .price_feed
+            .get_price_no_older_than(&Clock::get()?, 300, &feed_id)?;
 
         self.price_store.set_inner(PriceStore {
             price: price.price,
@@ -36,7 +38,11 @@ impl<'info> UpdatePrice<'info> {
             bump: bumps.price_store,
         });
 
-        msg!("SOL/USD price updated: {} * 10^{}", price.price, price.exponent);
+        msg!(
+            "SOL/USD price updated: {} * 10^{}",
+            price.price,
+            price.exponent
+        );
 
         Ok(())
     }
