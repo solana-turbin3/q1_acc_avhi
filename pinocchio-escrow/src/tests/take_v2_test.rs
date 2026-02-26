@@ -6,14 +6,14 @@ use solana_native_token::LAMPORTS_PER_SOL;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
+use super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
 
 #[test]
-fn test_take() {
+fn test_take_v2() {
     let amount_to_receive = 100_000_000u64;
     let amount_to_give = 500_000_000u64;
 
-    let mut s = setup_make(amount_to_receive, amount_to_give);
+    let mut s = setup_make_v2(amount_to_receive, amount_to_give);
 
     let taker = Keypair::new();
     s.svm
@@ -57,7 +57,7 @@ fn test_take() {
             AccountMeta::new(s.escrow_ata, false),
             AccountMeta::new(TOKEN_PROGRAM_ID, false),
         ],
-        data: vec![1u8],
+        data: vec![4u8],
     };
 
     let msg = Message::new(&[ix], Some(&taker.pubkey()));
@@ -67,5 +67,5 @@ fn test_take() {
         .send_transaction(Transaction::new(&[&taker], msg, blockhash))
         .unwrap();
 
-    println!("{:<12} | {:>6} CUs", "take v1", tx.compute_units_consumed);
+    println!("{:<12} | {:>6} CUs", "take v2", tx.compute_units_consumed);
 }

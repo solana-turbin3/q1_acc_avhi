@@ -3,11 +3,11 @@ use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
+use super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
 
 #[test]
-fn test_cancel() {
-    let mut s = setup_make(100_000_000, 500_000_000);
+fn test_cancel_v2() {
+    let mut s = setup_make_v2(100_000_000, 500_000_000);
 
     let ix = Instruction {
         program_id: program_id(),
@@ -18,7 +18,7 @@ fn test_cancel() {
             AccountMeta::new(s.escrow_ata, false),
             AccountMeta::new(TOKEN_PROGRAM_ID, false),
         ],
-        data: vec![2u8],
+        data: vec![5u8],
     };
 
     let msg = Message::new(&[ix], Some(&s.maker.pubkey()));
@@ -28,5 +28,5 @@ fn test_cancel() {
         .send_transaction(Transaction::new(&[&s.maker], msg, blockhash))
         .unwrap();
 
-    println!("{:<12} | {:>6} CUs", "cancel v1", tx.compute_units_consumed);
+    println!("{:<12} | {:>6} CUs", "cancel v2", tx.compute_units_consumed);
 }
