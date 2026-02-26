@@ -35,3 +35,7 @@ A generic storage system in Rust that serializes and deserializes data using thr
 ### [Persistent Todo Queue](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/persistent-todo-queue)
 
 A CLI-based todo application in Rust that stores tasks in a FIFO queue and persists them to disk using Borsh serialization. Implements a generic `Queue<T>` using two stacks instead of `VecDeque` for amortized O(1) enqueue and dequeue. Tasks survive program restarts, IDs never repeat even after completion, and the queue is serialized to a binary file after every mutation.
+
+### [Pinocchio Escrow](https://github.com/solana-turbin3/q1_acc_avhi/tree/main/pinocchio-escrow)
+
+A two-party token escrow program built with [Pinocchio](https://github.com/anza-xyz/pinocchio) -- no Anchor, no allocator, no std. The same make/take/cancel logic is implemented twice: an `unsafe` variant that parses instruction data with manual `u64::from_le_bytes` byte indexing and reads account state via raw pointer casting, and a `wincode` variant that uses `#[derive(SchemaRead)]` for schema-driven deserialization. Both variants are benchmarked side by side in a LiteSVM test that prints a CU comparison table. The unsafe variant is cheaper on `make` by roughly 1500 CUs due to SBPF-native byte load instructions; take and cancel are within 20 CUs of each other.
