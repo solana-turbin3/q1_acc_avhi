@@ -4,7 +4,8 @@ use pinocchio::{
 };
 
 use crate::instructions::{
-    process_cancel_instruction, process_make_instruction, process_take_instruction,
+    process_cancel_instruction, process_cancel_v2_instruction, process_make_instruction,
+    process_make_v2_instruction, process_take_instruction, process_take_v2_instruction,
 };
 
 program_entrypoint!(process_instruction);
@@ -26,6 +27,9 @@ fn process_instruction(
         Some((0, rest)) => process_make_instruction(accounts, rest),
         Some((1, rest)) => process_take_instruction(accounts, rest),
         Some((2, rest)) => process_cancel_instruction(accounts, rest),
+        Some((3, rest)) => process_make_v2_instruction(accounts, rest),
+        Some((4, rest)) => process_take_v2_instruction(accounts, rest),
+        Some((5, rest)) => process_cancel_v2_instruction(accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }

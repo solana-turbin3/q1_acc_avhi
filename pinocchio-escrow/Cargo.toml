@@ -7,6 +7,7 @@ edition = "2021"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
+wincode = { version = "0.4.5", features = ["derive"] }
 pinocchio = "0.10.2"
 pinocchio-system = "0.5.0"
 pinocchio-token = "0.5.0"
@@ -15,6 +16,8 @@ pinocchio-log = "0.5.1"
 pinocchio-associated-token-account = "0.3.0"
 
 [dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+wincode = { version = "0.4.5", features = ["derive"] }
 litesvm = "0.9.1"
 litesvm-token = "0.9.1"
 
@@ -31,3 +34,7 @@ spl-associated-token-account = "8.0.0"
 solana-rpc-client = "3.1.9"
 solana-address = "2.2.0"
 solana-account = "4.1.0"
+
+[[bench]]
+name = "make_ix"
+harness = false
