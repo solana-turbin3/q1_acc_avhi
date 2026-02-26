@@ -3,7 +3,7 @@ use pinocchio::{
     program_entrypoint, AccountView, Address, ProgramResult,
 };
 
-use crate::instructions::{process_make_instruction, process_take_instruction};
+use crate::instructions::{process_cancel_instruction, process_make_instruction, process_take_instruction};
 
 program_entrypoint!(process_instruction);
 no_allocator!();
@@ -23,7 +23,7 @@ fn process_instruction(
     match instruction_data.split_first() {
         Some((0, rest)) => process_make_instruction(accounts, rest),
         Some((1, rest)) => process_take_instruction(accounts, rest),
-        Some((2, _))    => Err(ProgramError::InvalidInstructionData),
+        Some((2, rest)) => process_cancel_instruction(accounts, rest),
         _               => Err(ProgramError::InvalidInstructionData),
     }
 }
