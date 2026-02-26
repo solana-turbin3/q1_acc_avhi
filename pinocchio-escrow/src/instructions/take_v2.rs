@@ -12,7 +12,7 @@ use pinocchio_token::{
 
 use crate::state::Escrow;
 
-pub fn process_take_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
+pub fn process_take_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
     let [taker, maker, escrow_account, taker_ata_a, taker_ata_b, maker_ata_b, escrow_ata, _remaining @ ..] =
         accounts
     else {
@@ -23,21 +23,18 @@ pub fn process_take_instruction(accounts: &[AccountView], _data: &[u8]) -> Progr
         return Err(ProgramError::IncorrectAuthority);
     }
 
-    let (amount_to_receive, amount_to_give, bump, mint_b) = {
-        let escrow_data = unsafe { escrow_account.borrow_unchecked() };
-        let escrow_state = Escrow::load(escrow_data)?;
+    let escrow_data = unsafe { escrow_account.borrow_unchecked() };
+    let escrow_state = wincode::deserialize::<Escrow>(escrow_data)
+        .map_err(|_| ProgramError::InvalidAccountData)?;
 
-        if escrow_state.maker != *maker.address().as_array() {
-            return Err(ProgramError::InvalidAccountData);
-        }
+    if escrow_state.maker != *maker.address().as_array() {
+        return Err(ProgramError::InvalidAccountData);
+    }
 
-        (
-            escrow_state.amount_to_receive,
-            escrow_state.amount_to_give,
-            escrow_state.bump,
-            escrow_state.mint_b,
-        )
-    };
+    let bump = escrow_state.bump;
+    let amount_to_receive = escrow_state.amount_to_receive;
+    let amount_to_give = escrow_state.amount_to_give;
+    let mint_b = escrow_state.mint_b;
 
     {
         let maker_ata_b_state = TokenAccount::from_account_view(maker_ata_b)?;

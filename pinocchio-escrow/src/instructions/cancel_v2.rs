@@ -9,7 +9,7 @@ use pinocchio_token::instructions::{CloseAccount, Transfer};
 
 use crate::state::Escrow;
 
-pub fn process_cancel_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
+pub fn process_cancel_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
     let [maker, escrow_account, maker_ata_a, escrow_ata, _remaining @ ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
@@ -18,16 +18,16 @@ pub fn process_cancel_instruction(accounts: &[AccountView], _data: &[u8]) -> Pro
         return Err(ProgramError::IncorrectAuthority);
     }
 
-    let (bump, amount_to_give) = {
-        let escrow_data = unsafe { escrow_account.borrow_unchecked() };
-        let escrow_state = Escrow::load(escrow_data)?;
+    let escrow_data = unsafe { escrow_account.borrow_unchecked() };
+    let escrow_state = wincode::deserialize::<Escrow>(escrow_data)
+        .map_err(|_| ProgramError::InvalidAccountData)?;
 
-        if escrow_state.maker != *maker.address().as_array() {
-            return Err(ProgramError::InvalidAccountData);
-        }
+    if escrow_state.maker != *maker.address().as_array() {
+        return Err(ProgramError::InvalidAccountData);
+    }
 
-        (escrow_state.bump, escrow_state.amount_to_give)
-    };
+    let bump = escrow_state.bump;
+    let amount_to_give = escrow_state.amount_to_give;
 
     let seeds: [&[u8]; 3] = [b"escrow", maker.address().as_array(), &[bump]];
     let expected_escrow = derive_address(&seeds, None, ID.as_array());

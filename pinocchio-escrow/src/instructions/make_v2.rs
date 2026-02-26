@@ -9,10 +9,21 @@ use pinocchio_associated_token_account::instructions::Create;
 use pinocchio_pubkey::derive_address;
 use pinocchio_system::instructions::CreateAccount;
 use pinocchio_token::instructions::Transfer;
+use wincode::SchemaRead;
 
 use crate::state::Escrow;
+use crate::utils::impl_len;
 
-pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
+#[derive(SchemaRead)]
+pub struct MakeV2InstructionData {
+    pub amount_to_receive: u64,
+    pub amount_to_give: u64,
+    pub bump: u8,
+}
+
+impl_len!(MakeV2InstructionData);
+
+pub fn process_make_v2_instruction(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     let [maker, mint_a, mint_b, escrow_account, maker_ata, escrow_ata, system_program, token_program, _remaining @ ..] =
         accounts
     else {
@@ -23,17 +34,12 @@ pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> Progra
         return Err(ProgramError::IncorrectAuthority);
     }
 
-    if data.len() < 17 {
-        return Err(ProgramError::InvalidInstructionData);
-    }
+    let ix_data = wincode::deserialize::<MakeV2InstructionData>(data)
+        .map_err(|_| ProgramError::InvalidInstructionData)?;
 
-    let amount_to_receive = u64::from_le_bytes([
-        data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
-    ]);
-    let amount_to_give = u64::from_le_bytes([
-        data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15],
-    ]);
-    let bump = data[16];
+    let bump = ix_data.bump;
+    let amount_to_receive = ix_data.amount_to_receive;
+    let amount_to_give = ix_data.amount_to_give;
 
     {
         let maker_ata_state = pinocchio_token::state::TokenAccount::from_account_view(maker_ata)?;

@@ -1,7 +1,8 @@
 use crate::utils::{impl_len, impl_load};
+use wincode::SchemaRead;
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, SchemaRead)]
 pub struct Escrow {
     pub maker: [u8; 32],
     pub mint_a: [u8; 32],
