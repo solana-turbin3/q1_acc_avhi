@@ -62,15 +62,11 @@ pub fn setup_make(amount_to_receive: u64, amount_to_give: u64) -> MakeSetup {
         .send()
         .unwrap();
 
-    let (escrow_pda, bump) = Pubkey::find_program_address(
-        &[b"escrow", maker.pubkey().as_ref()],
-        &program_id(),
-    );
+    let (escrow_pda, bump) =
+        Pubkey::find_program_address(&[b"escrow", maker.pubkey().as_ref()], &program_id());
 
-    let escrow_ata = spl_associated_token_account::get_associated_token_address(
-        &escrow_pda,
-        &mint_a,
-    );
+    let escrow_ata =
+        spl_associated_token_account::get_associated_token_address(&escrow_pda, &mint_a);
 
     MintTo::new(&mut svm, &maker, &mint_a, &maker_ata_a, amount_to_give)
         .send()
@@ -95,7 +91,10 @@ pub fn setup_make(amount_to_receive: u64, amount_to_give: u64) -> MakeSetup {
             AccountMeta::new(escrow_ata, false),
             AccountMeta::new(solana_sdk_ids::system_program::ID, false),
             AccountMeta::new(TOKEN_PROGRAM_ID, false),
-            AccountMeta::new(ASSOCIATED_TOKEN_PROGRAM_ID.parse::<Pubkey>().unwrap(), false),
+            AccountMeta::new(
+                ASSOCIATED_TOKEN_PROGRAM_ID.parse::<Pubkey>().unwrap(),
+                false,
+            ),
         ],
         data,
     };
@@ -105,5 +104,13 @@ pub fn setup_make(amount_to_receive: u64, amount_to_give: u64) -> MakeSetup {
     svm.send_transaction(Transaction::new(&[&maker], msg, blockhash))
         .unwrap();
 
-    MakeSetup { svm, maker, mint_a, mint_b, escrow_pda, escrow_ata, maker_ata_a }
+    MakeSetup {
+        svm,
+        maker,
+        mint_a,
+        mint_b,
+        escrow_pda,
+        escrow_ata,
+        maker_ata_a,
+    }
 }

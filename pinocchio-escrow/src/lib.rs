@@ -1,9 +1,9 @@
 #![allow(unexpected_cfgs)]
 
 mod entrypoint;
-mod utils;
-mod state;
 mod instructions;
+mod state;
 mod tests;
+mod utils;
 
 pub use entrypoint::ID;

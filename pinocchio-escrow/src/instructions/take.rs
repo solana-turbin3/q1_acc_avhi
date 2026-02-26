@@ -28,7 +28,11 @@ pub fn process_take_instruction(accounts: &[AccountView], _data: &[u8]) -> Progr
             return Err(ProgramError::InvalidAccountData);
         }
 
-        (escrow_state.amount_to_receive, escrow_state.amount_to_give, escrow_state.bump)
+        (
+            escrow_state.amount_to_receive,
+            escrow_state.amount_to_give,
+            escrow_state.bump,
+        )
     };
 
     let seeds: [&[u8]; 3] = [b"escrow", maker.address().as_array(), &[bump]];

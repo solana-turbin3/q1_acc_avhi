@@ -16,7 +16,9 @@ fn test_take() {
     let mut s = setup_make(amount_to_receive, amount_to_give);
 
     let taker = Keypair::new();
-    s.svm.airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL).unwrap();
+    s.svm
+        .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
+        .unwrap();
 
     let taker_ata_a = CreateAssociatedTokenAccount::new(&mut s.svm, &taker, &s.mint_a)
         .owner(&taker.pubkey())
@@ -33,9 +35,15 @@ fn test_take() {
         .send()
         .unwrap();
 
-    MintTo::new(&mut s.svm, &s.maker, &s.mint_b, &taker_ata_b, amount_to_receive)
-        .send()
-        .unwrap();
+    MintTo::new(
+        &mut s.svm,
+        &s.maker,
+        &s.mint_b,
+        &taker_ata_b,
+        amount_to_receive,
+    )
+    .send()
+    .unwrap();
 
     let ix = Instruction {
         program_id: program_id(),
