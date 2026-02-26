@@ -6,7 +6,7 @@ use solana_native_token::LAMPORTS_PER_SOL;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
+use super::super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
 
 #[test]
 fn test_take() {

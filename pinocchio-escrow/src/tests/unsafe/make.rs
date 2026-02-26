@@ -1,4 +1,4 @@
-use super::helpers::setup_make;
+use super::super::helpers::setup_make;
 
 #[test]
 fn test_make() {

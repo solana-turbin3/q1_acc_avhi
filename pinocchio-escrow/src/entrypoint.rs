@@ -3,10 +3,8 @@ use pinocchio::{
     program_entrypoint, AccountView, Address, ProgramResult,
 };
 
-use crate::instructions::{
-    process_cancel_instruction, process_cancel_v2_instruction, process_make_instruction,
-    process_make_v2_instruction, process_take_instruction, process_take_v2_instruction,
-};
+use crate::instructions::r#unsafe as ix;
+use crate::instructions::wincode as ix_v2;
 
 program_entrypoint!(process_instruction);
 no_allocator!();
@@ -24,12 +22,12 @@ fn process_instruction(
     }
 
     match instruction_data.split_first() {
-        Some((0, rest)) => process_make_instruction(accounts, rest),
-        Some((1, rest)) => process_take_instruction(accounts, rest),
-        Some((2, rest)) => process_cancel_instruction(accounts, rest),
-        Some((3, rest)) => process_make_v2_instruction(accounts, rest),
-        Some((4, rest)) => process_take_v2_instruction(accounts, rest),
-        Some((5, rest)) => process_cancel_v2_instruction(accounts, rest),
+        Some((0, rest)) => ix::process_make_instruction(accounts, rest),
+        Some((1, rest)) => ix::process_take_instruction(accounts, rest),
+        Some((2, rest)) => ix::process_cancel_instruction(accounts, rest),
+        Some((3, rest)) => ix_v2::process_make_instruction(accounts, rest),
+        Some((4, rest)) => ix_v2::process_take_instruction(accounts, rest),
+        Some((5, rest)) => ix_v2::process_cancel_instruction(accounts, rest),
         _ => Err(ProgramError::InvalidInstructionData),
     }
 }

@@ -6,10 +6,10 @@ use solana_native_token::LAMPORTS_PER_SOL;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
+use super::super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
 
 #[test]
-fn test_take_v2() {
+fn test_take() {
     let amount_to_receive = 100_000_000u64;
     let amount_to_give = 500_000_000u64;
 

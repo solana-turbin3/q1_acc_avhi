@@ -35,6 +35,3 @@ solana-rpc-client = "3.1.9"
 solana-address = "2.2.0"
 solana-account = "4.1.0"
 
-[[bench]]
-name = "make_ix"
-harness = false

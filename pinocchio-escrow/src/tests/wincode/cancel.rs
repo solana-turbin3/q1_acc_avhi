@@ -3,10 +3,10 @@ use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
+use super::super::helpers::{program_id, setup_make_v2, TOKEN_PROGRAM_ID};
 
 #[test]
-fn test_cancel_v2() {
+fn test_cancel() {
     let mut s = setup_make_v2(100_000_000, 500_000_000);
 
     let ix = Instruction {

@@ -10,7 +10,9 @@ use super::helpers::{program_id, setup_make, setup_make_v2, MakeSetup, TOKEN_PRO
 
 fn do_take(s: &mut MakeSetup, disc: u8, amount_to_receive: u64) -> u64 {
     let taker = Keypair::new();
-    s.svm.airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL).unwrap();
+    s.svm
+        .airdrop(&taker.pubkey(), 10 * LAMPORTS_PER_SOL)
+        .unwrap();
 
     let taker_ata_a = CreateAssociatedTokenAccount::new(&mut s.svm, &taker, &s.mint_a)
         .owner(&taker.pubkey())
@@ -25,9 +27,15 @@ fn do_take(s: &mut MakeSetup, disc: u8, amount_to_receive: u64) -> u64 {
         .send()
         .unwrap();
 
-    MintTo::new(&mut s.svm, &s.maker, &s.mint_b, &taker_ata_b, amount_to_receive)
-        .send()
-        .unwrap();
+    MintTo::new(
+        &mut s.svm,
+        &s.maker,
+        &s.mint_b,
+        &taker_ata_b,
+        amount_to_receive,
+    )
+    .send()
+    .unwrap();
 
     let ix = Instruction {
         program_id: program_id(),

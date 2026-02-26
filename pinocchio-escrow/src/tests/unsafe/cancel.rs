@@ -3,7 +3,7 @@ use solana_message::Message;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
+use super::super::helpers::{program_id, setup_make, TOKEN_PROGRAM_ID};
 
 #[test]
 fn test_cancel() {

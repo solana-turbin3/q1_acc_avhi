@@ -12,7 +12,7 @@ use pinocchio_token::{
 
 use crate::state::Escrow;
 
-pub fn process_take_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
+pub fn process_take_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
     let [taker, maker, escrow_account, taker_ata_a, taker_ata_b, maker_ata_b, escrow_ata, _remaining @ ..] =
         accounts
     else {
@@ -24,7 +24,7 @@ pub fn process_take_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> Pr
     }
 
     let escrow_data = unsafe { escrow_account.borrow_unchecked() };
-    let escrow_state = wincode::deserialize::<Escrow>(escrow_data)
+    let escrow_state = ::wincode::deserialize::<Escrow>(escrow_data)
         .map_err(|_| ProgramError::InvalidAccountData)?;
 
     if escrow_state.maker != *maker.address().as_array() {

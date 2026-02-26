@@ -9,21 +9,18 @@ use pinocchio_associated_token_account::instructions::Create;
 use pinocchio_pubkey::derive_address;
 use pinocchio_system::instructions::CreateAccount;
 use pinocchio_token::instructions::Transfer;
-use wincode::SchemaRead;
+use ::wincode::SchemaRead;
 
 use crate::state::Escrow;
-use crate::utils::impl_len;
 
 #[derive(SchemaRead)]
-pub struct MakeV2InstructionData {
+pub struct MakeInstructionData {
     pub amount_to_receive: u64,
     pub amount_to_give: u64,
     pub bump: u8,
 }
 
-impl_len!(MakeV2InstructionData);
-
-pub fn process_make_v2_instruction(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
+pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     let [maker, mint_a, mint_b, escrow_account, maker_ata, escrow_ata, system_program, token_program, _remaining @ ..] =
         accounts
     else {
@@ -34,7 +31,7 @@ pub fn process_make_v2_instruction(accounts: &[AccountView], data: &[u8]) -> Pro
         return Err(ProgramError::IncorrectAuthority);
     }
 
-    let ix_data = wincode::deserialize::<MakeV2InstructionData>(data)
+    let ix_data = ::wincode::deserialize::<MakeInstructionData>(data)
         .map_err(|_| ProgramError::InvalidInstructionData)?;
 
     let bump = ix_data.bump;

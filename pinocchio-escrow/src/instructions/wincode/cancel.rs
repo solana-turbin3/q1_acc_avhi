@@ -9,7 +9,7 @@ use pinocchio_token::instructions::{CloseAccount, Transfer};
 
 use crate::state::Escrow;
 
-pub fn process_cancel_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
+pub fn process_cancel_instruction(accounts: &[AccountView], _data: &[u8]) -> ProgramResult {
     let [maker, escrow_account, maker_ata_a, escrow_ata, _remaining @ ..] = accounts else {
         return Err(ProgramError::NotEnoughAccountKeys);
     };
@@ -19,7 +19,7 @@ pub fn process_cancel_v2_instruction(accounts: &[AccountView], _data: &[u8]) -> 
     }
 
     let escrow_data = unsafe { escrow_account.borrow_unchecked() };
-    let escrow_state = wincode::deserialize::<Escrow>(escrow_data)
+    let escrow_state = ::wincode::deserialize::<Escrow>(escrow_data)
         .map_err(|_| ProgramError::InvalidAccountData)?;
 
     if escrow_state.maker != *maker.address().as_array() {

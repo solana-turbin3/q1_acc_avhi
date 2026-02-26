@@ -5,10 +5,10 @@ use solana_pubkey::Pubkey;
 use solana_signer::Signer;
 use solana_transaction::Transaction;
 
-use super::helpers::{load_svm, program_id, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID};
+use super::super::helpers::{load_svm, program_id, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID};
 
 #[test]
-fn test_make_v2() {
+fn test_make() {
     let (mut svm, maker) = load_svm();
 
     let mint_a = CreateMint::new(&mut svm, &maker)
