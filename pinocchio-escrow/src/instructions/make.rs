@@ -47,12 +47,14 @@ pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> Progra
     let amount_to_receive = u64::from_le_bytes(ix_data.amount_to_receive);
     let amount_to_give = u64::from_le_bytes(ix_data.amount_to_give);
 
-    let maker_ata_state = pinocchio_token::state::TokenAccount::from_account_view(maker_ata)?;
-    if maker_ata_state.owner() != maker.address() {
-        return Err(ProgramError::IllegalOwner);
-    }
-    if maker_ata_state.mint() != mint_a.address() {
-        return Err(ProgramError::InvalidAccountData);
+    {
+        let maker_ata_state = pinocchio_token::state::TokenAccount::from_account_view(maker_ata)?;
+        if maker_ata_state.owner() != maker.address() {
+            return Err(ProgramError::IllegalOwner);
+        }
+        if maker_ata_state.mint() != mint_a.address() {
+            return Err(ProgramError::InvalidAccountData);
+        }
     }
 
     let seeds: [&[u8]; 3] = [b"escrow", maker.address().as_array(), &[bump]];
