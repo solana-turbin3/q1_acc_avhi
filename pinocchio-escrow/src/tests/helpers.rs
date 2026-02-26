@@ -74,9 +74,10 @@ pub fn setup_make(amount_to_receive: u64, amount_to_give: u64) -> MakeSetup {
 
     let data = [
         vec![0u8],
-        bump.to_le_bytes().to_vec(),
         amount_to_receive.to_le_bytes().to_vec(),
         amount_to_give.to_le_bytes().to_vec(),
+        vec![bump],
+        vec![0u8; 7],
     ]
     .concat();
 

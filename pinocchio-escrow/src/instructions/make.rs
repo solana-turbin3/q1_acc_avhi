@@ -12,19 +12,20 @@ use pinocchio_token::instructions::Transfer;
 
 use crate::{
     state::Escrow,
-    utils::{impl_len, impl_load},
+    utils::{impl_len, impl_load_ix},
 };
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct MakeInstructionData {
+    pub amount_to_receive: u64,
+    pub amount_to_give: u64,
     pub bump: u8,
-    pub amount_to_receive: [u8; 8],
-    pub amount_to_give: [u8; 8],
+    pub _padding: [u8; 7],
 }
 
 impl_len!(MakeInstructionData);
-impl_load!(MakeInstructionData);
+impl_load_ix!(MakeInstructionData);
 
 pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> ProgramResult {
     let [maker, mint_a, mint_b, escrow_account, maker_ata, escrow_ata, system_program, token_program, _remaining @ ..] =
@@ -37,15 +38,11 @@ pub fn process_make_instruction(accounts: &[AccountView], data: &[u8]) -> Progra
         return Err(ProgramError::IncorrectAuthority);
     }
 
-    if data.len() < MakeInstructionData::LEN {
-        return Err(ProgramError::InvalidInstructionData);
-    }
-
     let ix_data = MakeInstructionData::load(data)?;
 
     let bump = ix_data.bump;
-    let amount_to_receive = u64::from_le_bytes(ix_data.amount_to_receive);
-    let amount_to_give = u64::from_le_bytes(ix_data.amount_to_give);
+    let amount_to_receive = ix_data.amount_to_receive;
+    let amount_to_give = ix_data.amount_to_give;
 
     {
         let maker_ata_state = pinocchio_token::state::TokenAccount::from_account_view(maker_ata)?;
