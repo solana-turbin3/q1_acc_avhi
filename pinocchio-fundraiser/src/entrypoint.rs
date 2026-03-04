@@ -4,6 +4,8 @@ use pinocchio::{
     program_entrypoint,
 };
 
+pinocchio_pubkey::declare_id!("FNDR111111111111111111111111111111111111111");
+
 use crate::instructions::{
     process_checker, process_contribute, process_initialize, process_refund,
 };

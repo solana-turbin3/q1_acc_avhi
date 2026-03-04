@@ -2,18 +2,22 @@ use pinocchio::{
     AccountView, Address, ProgramResult,
     cpi::{Seed, Signer},
     error::ProgramError,
-    sysvars::{Sysvar, clock::Clock, rent::RENT_ID, rent::Rent},
+    sysvars::{Sysvar, clock::Clock, rent::ACCOUNT_STORAGE_OVERHEAD},
 };
-use pinocchio_system::ID;
 use pinocchio_system::instructions::CreateAccount;
 use pinocchio_token::ID as TOKEN_ID;
-use pinocchio_token::instructions::InitializeAccount;
+use pinocchio_token::instructions::InitializeAccount3;
 
 use crate::{
-    helper::{check_signer, validate_eq},
+    helper::check_signer,
     states::Fundraiser,
-    utils::{check_zero, impl_len, impl_load},
+    utils::{check_zero, impl_len, impl_load_ix},
 };
+
+const DEFAULT_LAMPORTS_PER_BYTE: u64 = 6960;
+const FUNDRAISER_RENT: u64 =
+    (ACCOUNT_STORAGE_OVERHEAD + Fundraiser::LEN as u64) * DEFAULT_LAMPORTS_PER_BYTE;
+const VAULT_RENT: u64 = (ACCOUNT_STORAGE_OVERHEAD + 165) * DEFAULT_LAMPORTS_PER_BYTE;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -25,7 +29,7 @@ pub struct InitializeInstructionData {
 }
 
 impl_len!(InitializeInstructionData);
-impl_load!(InitializeInstructionData);
+impl_load_ix!(InitializeInstructionData);
 
 pub fn process_initialize(
     program_id: &Address,
@@ -37,9 +41,8 @@ pub fn process_initialize(
         fundraiser,
         mint,
         vault,
-        system_program,
-        token_program,
-        rent_sysvar,
+        _system_program,
+        _token_program,
         _remaining @ ..,
     ] = accounts
     else {
@@ -52,22 +55,6 @@ pub fn process_initialize(
 
     check_zero!(== data.amount_to_raise, ProgramError::InvalidInstructionData);
     check_zero!(== data.duration, ProgramError::InvalidInstructionData);
-
-    validate_eq(
-        system_program.address(),
-        &ID,
-        ProgramError::IncorrectProgramId,
-    )?;
-    validate_eq(
-        token_program.address(),
-        &TOKEN_ID,
-        ProgramError::IncorrectProgramId,
-    )?;
-    validate_eq(
-        rent_sysvar.address(),
-        &RENT_ID,
-        ProgramError::InvalidAccountData,
-    )?;
 
     if mint.is_data_empty() || mint.lamports() == 0 {
         return Err(ProgramError::UninitializedAccount);
@@ -86,7 +73,7 @@ pub fn process_initialize(
         to: fundraiser,
         space: Fundraiser::LEN as u64,
         owner: program_id,
-        lamports: Rent::get()?.minimum_balance_unchecked(Fundraiser::LEN),
+        lamports: FUNDRAISER_RENT,
     }
     .invoke_signed(&[signer_seeds])?;
 
@@ -95,15 +82,14 @@ pub fn process_initialize(
         to: vault,
         owner: &TOKEN_ID,
         space: 165,
-        lamports: Rent::get()?.minimum_balance_unchecked(165),
+        lamports: VAULT_RENT,
     }
     .invoke()?;
 
-    InitializeAccount {
+    InitializeAccount3 {
         account: vault,
         mint,
-        owner: fundraiser,
-        rent_sysvar,
+        owner: fundraiser.address(),
     }
     .invoke()?;
 

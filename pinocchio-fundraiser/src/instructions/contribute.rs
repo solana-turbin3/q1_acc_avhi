@@ -2,17 +2,20 @@ use pinocchio::{
     AccountView, Address, ProgramResult,
     cpi::{Seed, Signer},
     error::ProgramError,
-    sysvars::{Sysvar, clock::Clock, rent::Rent},
+    sysvars::{Sysvar, clock::Clock, rent::ACCOUNT_STORAGE_OVERHEAD},
 };
-use pinocchio_pubkey::derive_address;
 use pinocchio_system::instructions::CreateAccount;
-use pinocchio_token::{ID as TOKEN_ID, instructions::Transfer};
+use pinocchio_token::instructions::Transfer;
 
 use crate::{
-    helper::{check_signer, validate_eq},
+    helper::check_signer,
     states::{Contributor, Fundraiser},
-    utils::{check_zero, impl_len, impl_load},
+    utils::{check_zero, impl_len, impl_load_ix},
 };
+
+const DEFAULT_LAMPORTS_PER_BYTE: u64 = 6960;
+const CONTRIBUTOR_RENT: u64 =
+    (ACCOUNT_STORAGE_OVERHEAD + Contributor::LEN as u64) * DEFAULT_LAMPORTS_PER_BYTE;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -23,7 +26,7 @@ pub struct ContributeInstructionData {
 }
 
 impl_len!(ContributeInstructionData);
-impl_load!(ContributeInstructionData);
+impl_load_ix!(ContributeInstructionData);
 
 pub fn process_contribute(
     program_id: &Address,
@@ -37,8 +40,8 @@ pub fn process_contribute(
         vault,
         contributor_ata,
         contributor_state,
-        system_program,
-        token_program,
+        _system_program,
+        _token_program,
         _remaining @ ..,
     ] = accounts
     else {
@@ -51,45 +54,19 @@ pub fn process_contribute(
 
     check_zero!(== data.amount, ProgramError::InvalidInstructionData);
 
-    validate_eq(
-        system_program.address(),
-        &pinocchio_system::ID,
-        ProgramError::IncorrectProgramId,
-    )?;
+    if !fundraiser.owned_by(program_id) {
+        return Err(ProgramError::IllegalOwner);
+    }
 
-    validate_eq(
-        token_program.address(),
-        &TOKEN_ID,
-        ProgramError::IncorrectProgramId,
-    )?;
-
-    let (expected_fundraiser, mint_to_raise, time_started, duration, fundraiser_bump) = {
+    let (mint_to_raise, time_started, duration) = {
         let fundraiser_data = unsafe { fundraiser.borrow_unchecked() };
         let state = Fundraiser::load(fundraiser_data)?;
-
-        let seeds: [&[u8]; 2] = [b"fundraiser", &state.maker];
-        let expected = derive_address(&seeds, Some(state.bump), program_id.as_array());
-
-        (
-            expected,
-            state.mint_to_raise,
-            state.time_started,
-            state.duration,
-            state.bump,
-        )
+        (state.mint_to_raise, state.time_started, state.duration)
     };
 
-    validate_eq(
-        fundraiser.address().as_array(),
-        &expected_fundraiser,
-        ProgramError::InvalidAccountData,
-    )?;
-
-    validate_eq(
-        mint.address().as_array(),
-        &mint_to_raise,
-        ProgramError::InvalidAccountData,
-    )?;
+    if mint.address().as_array() != &mint_to_raise {
+        return Err(ProgramError::InvalidAccountData);
+    }
 
     let deadline = time_started + duration as i64 * 86400;
     if Clock::get()?.unix_timestamp > deadline {
@@ -110,7 +87,7 @@ pub fn process_contribute(
         to: contributor_state,
         space: Contributor::LEN as u64,
         owner: program_id,
-        lamports: Rent::get()?.minimum_balance_unchecked(Contributor::LEN),
+        lamports: CONTRIBUTOR_RENT,
     }
     .invoke_signed(&[contributor_signer])?;
 
@@ -124,6 +101,7 @@ pub fn process_contribute(
 
     let contributor_data = unsafe { contributor_state.borrow_unchecked_mut() };
     let contributor_st = Contributor::load_mut(contributor_data)?;
+    contributor_st.contributor = *contributor.address().as_array();
     contributor_st.amount = data.amount;
     contributor_st.bump = data.bump;
 
@@ -133,8 +111,6 @@ pub fn process_contribute(
         .current_amount
         .checked_add(data.amount)
         .ok_or(ProgramError::ArithmeticOverflow)?;
-
-    let _ = fundraiser_bump;
 
     Ok(())
 }

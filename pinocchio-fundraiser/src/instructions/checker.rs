@@ -3,19 +3,12 @@ use pinocchio::{
     cpi::{Seed, Signer},
     error::ProgramError,
 };
-use pinocchio_pubkey::derive_address;
-use pinocchio_token::{
-    ID as TOKEN_ID,
-    instructions::{CloseAccount, Transfer},
-};
+use pinocchio_token::instructions::{CloseAccount, Transfer};
 
-use crate::{
-    helper::{check_signer, validate_eq},
-    states::Fundraiser,
-};
+use crate::{helper::check_signer, states::Fundraiser};
 
 pub fn process_checker(
-    program_id: &Address,
+    _program_id: &Address,
     accounts: &[AccountView],
     _instruction_data: &[u8],
 ) -> ProgramResult {
@@ -24,7 +17,7 @@ pub fn process_checker(
         fundraiser,
         vault,
         maker_ata,
-        token_program,
+        _token_program,
         _remaining @ ..,
     ] = accounts
     else {
@@ -33,30 +26,13 @@ pub fn process_checker(
 
     check_signer(maker, ProgramError::IncorrectAuthority)?;
 
-    validate_eq(
-        token_program.address(),
-        &TOKEN_ID,
-        ProgramError::IncorrectProgramId,
-    )?;
-
     let (amount_to_raise, current_amount, bump) = {
         let fundraiser_data = unsafe { fundraiser.borrow_unchecked() };
         let state = Fundraiser::load(fundraiser_data)?;
 
-        validate_eq(
-            &state.maker,
-            maker.address().as_array(),
-            ProgramError::IncorrectAuthority,
-        )?;
-
-        let seeds: [&[u8]; 2] = [b"fundraiser", &state.maker];
-        let expected = derive_address(&seeds, Some(state.bump), program_id.as_array());
-
-        validate_eq(
-            fundraiser.address().as_array(),
-            &expected,
-            ProgramError::InvalidAccountData,
-        )?;
+        if &state.maker != maker.address().as_array() {
+            return Err(ProgramError::IncorrectAuthority);
+        }
 
         (state.amount_to_raise, state.current_amount, state.bump)
     };
@@ -71,6 +47,7 @@ pub fn process_checker(
         Seed::from(maker.address().as_array()),
         Seed::from(&bump_arr),
     ];
+    let signer = Signer::from(&signer_seeds[..]);
 
     Transfer {
         from: vault,
@@ -78,7 +55,7 @@ pub fn process_checker(
         authority: fundraiser,
         amount: current_amount,
     }
-    .invoke_signed(&[Signer::from(&signer_seeds[..])])?;
+    .invoke_signed(&[signer])?;
 
     CloseAccount {
         account: vault,

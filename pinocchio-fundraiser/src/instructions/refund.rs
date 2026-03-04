@@ -4,11 +4,10 @@ use pinocchio::{
     error::ProgramError,
     sysvars::{Sysvar, clock::Clock},
 };
-use pinocchio_pubkey::derive_address;
-use pinocchio_token::{ID as TOKEN_ID, instructions::Transfer};
+use pinocchio_token::instructions::Transfer;
 
 use crate::{
-    helper::{check_signer, validate_eq},
+    helper::check_signer,
     states::{Contributor, Fundraiser},
     utils::check_zero,
 };
@@ -24,7 +23,7 @@ pub fn process_refund(
         vault,
         contributor_ata,
         contributor_state,
-        token_program,
+        _token_program,
         _remaining @ ..,
     ] = accounts
     else {
@@ -33,25 +32,9 @@ pub fn process_refund(
 
     check_signer(contributor, ProgramError::IncorrectAuthority)?;
 
-    validate_eq(
-        token_program.address(),
-        &TOKEN_ID,
-        ProgramError::IncorrectProgramId,
-    )?;
-
     let (amount_to_raise, current_amount, time_started, duration, maker, fundraiser_bump) = {
         let fundraiser_data = unsafe { fundraiser.borrow_unchecked() };
         let state = Fundraiser::load(fundraiser_data)?;
-
-        let seeds: [&[u8]; 2] = [b"fundraiser", &state.maker];
-        let expected = derive_address(&seeds, Some(state.bump), program_id.as_array());
-
-        validate_eq(
-            fundraiser.address().as_array(),
-            &expected,
-            ProgramError::InvalidAccountData,
-        )?;
-
         (
             state.amount_to_raise,
             state.current_amount,
@@ -71,22 +54,17 @@ pub fn process_refund(
         return Err(ProgramError::InvalidAccountData);
     }
 
+    if !contributor_state.owned_by(program_id) {
+        return Err(ProgramError::IllegalOwner);
+    }
+
     let refund_amount = {
         let contributor_data = unsafe { contributor_state.borrow_unchecked() };
         let state = Contributor::load(contributor_data)?;
 
-        let seeds: [&[u8]; 3] = [
-            b"contributor",
-            fundraiser.address().as_array(),
-            contributor.address().as_array(),
-        ];
-        let expected = derive_address(&seeds, Some(state.bump), program_id.as_array());
-
-        validate_eq(
-            contributor_state.address().as_array(),
-            &expected,
-            ProgramError::InvalidAccountData,
-        )?;
+        if &state.contributor != contributor.address().as_array() {
+            return Err(ProgramError::InvalidAccountData);
+        }
 
         state.amount
     };
