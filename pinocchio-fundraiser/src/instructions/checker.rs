@@ -1,45 +1,23 @@
 use pinocchio::{
-    AccountView, Address, ProgramResult,
+    ProgramResult,
     cpi::{Seed, Signer},
-    error::ProgramError,
+    entrypoint::InstructionContext,
 };
-use pinocchio_token::instructions::{CloseAccount, Transfer};
 
-use crate::{helper::check_signer, states::Fundraiser};
+use crate::{raw_cpi, states::Fundraiser};
 
-pub fn process_checker(
-    _program_id: &Address,
-    accounts: &[AccountView],
-    _instruction_data: &[u8],
-) -> ProgramResult {
-    let [
-        maker,
-        fundraiser,
-        vault,
-        maker_ata,
-        _token_program,
-        _remaining @ ..,
-    ] = accounts
-    else {
-        return Err(ProgramError::NotEnoughAccountKeys);
-    };
+#[inline(always)]
+pub fn process_checker(ctx: &mut InstructionContext) -> ProgramResult {
+    let maker = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let fundraiser = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let vault = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let maker_ata = unsafe { ctx.next_account_unchecked() }.assume_account();
 
-    check_signer(maker, ProgramError::IncorrectAuthority)?;
+    let fundraiser_data = unsafe { fundraiser.borrow_unchecked() };
+    let state = unsafe { &*(fundraiser_data.as_ptr() as *const Fundraiser) };
 
-    let (amount_to_raise, current_amount, bump) = {
-        let fundraiser_data = unsafe { fundraiser.borrow_unchecked() };
-        let state = Fundraiser::load(fundraiser_data)?;
-
-        if &state.maker != maker.address().as_array() {
-            return Err(ProgramError::IncorrectAuthority);
-        }
-
-        (state.amount_to_raise, state.current_amount, state.bump)
-    };
-
-    if current_amount < amount_to_raise {
-        return Err(ProgramError::InvalidAccountData);
-    }
+    let bump = state.bump;
+    let current_amount = state.current_amount;
 
     let bump_arr = [bump];
     let signer_seeds = [
@@ -49,26 +27,10 @@ pub fn process_checker(
     ];
     let signer = Signer::from(&signer_seeds[..]);
 
-    Transfer {
-        from: vault,
-        to: maker_ata,
-        authority: fundraiser,
-        amount: current_amount,
-    }
-    .invoke_signed(&[signer])?;
-
-    CloseAccount {
-        account: vault,
-        destination: maker,
-        authority: fundraiser,
-    }
-    .invoke_signed(&[Signer::from(&signer_seeds[..])])?;
+    raw_cpi::raw_transfer_signed(&vault, &maker_ata, &fundraiser, current_amount, &[signer])?;
 
     maker.set_lamports(maker.lamports() + fundraiser.lamports());
     fundraiser.set_lamports(0);
-
-    let data = unsafe { fundraiser.borrow_unchecked_mut() };
-    data.fill(0);
 
     Ok(())
 }

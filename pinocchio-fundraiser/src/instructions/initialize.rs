@@ -1,108 +1,60 @@
 use pinocchio::{
-    AccountView, Address, ProgramResult,
+    ProgramResult,
     cpi::{Seed, Signer},
-    error::ProgramError,
-    sysvars::{Sysvar, clock::Clock, rent::ACCOUNT_STORAGE_OVERHEAD},
+    entrypoint::InstructionContext,
+    sysvars::rent::ACCOUNT_STORAGE_OVERHEAD,
 };
-use pinocchio_system::instructions::CreateAccount;
-use pinocchio_token::ID as TOKEN_ID;
-use pinocchio_token::instructions::InitializeAccount3;
 
 use crate::{
-    helper::check_signer,
+    entrypoint::PROGRAM_ADDRESS,
+    raw_cpi,
     states::Fundraiser,
-    utils::{check_zero, impl_len, impl_load_ix},
 };
 
 const DEFAULT_LAMPORTS_PER_BYTE: u64 = 6960;
 const FUNDRAISER_RENT: u64 =
     (ACCOUNT_STORAGE_OVERHEAD + Fundraiser::LEN as u64) * DEFAULT_LAMPORTS_PER_BYTE;
-const VAULT_RENT: u64 = (ACCOUNT_STORAGE_OVERHEAD + 165) * DEFAULT_LAMPORTS_PER_BYTE;
 
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct InitializeInstructionData {
-    pub amount_to_raise: u64,
-    pub duration: u8,
-    pub bump: u8,
-    pub _padding: [u8; 6],
-}
+#[inline(always)]
+pub fn process_initialize(ctx: &mut InstructionContext) -> ProgramResult {
+    let maker = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let fundraiser = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let mint = unsafe { ctx.next_account_unchecked() }.assume_account();
+    let _ = unsafe { ctx.next_account_unchecked() }; // system_program
 
-impl_len!(InitializeInstructionData);
-impl_load_ix!(InitializeInstructionData);
-
-pub fn process_initialize(
-    program_id: &Address,
-    accounts: &[AccountView],
-    instruction_data: &[u8],
-) -> ProgramResult {
-    let [
-        maker,
-        fundraiser,
-        mint,
-        vault,
-        _system_program,
-        _token_program,
-        _remaining @ ..,
-    ] = accounts
-    else {
-        return Err(ProgramError::NotEnoughAccountKeys);
+    let ix_data = unsafe { ctx.instruction_data_unchecked() };
+    let (amount_to_raise, duration, bump) = unsafe {
+        let ptr = ix_data.as_ptr().add(1);
+        (*(ptr as *const u64), *ptr.add(8), *ptr.add(9))
     };
 
-    check_signer(maker, ProgramError::IncorrectAuthority)?;
-
-    let data = InitializeInstructionData::load(instruction_data)?;
-
-    check_zero!(== data.amount_to_raise, ProgramError::InvalidInstructionData);
-    check_zero!(== data.duration, ProgramError::InvalidInstructionData);
-
-    if mint.is_data_empty() || mint.lamports() == 0 {
-        return Err(ProgramError::UninitializedAccount);
-    }
-
-    let bump = [data.bump];
+    let bump_arr = [bump];
     let seeds = [
         Seed::from(b"fundraiser"),
         Seed::from(maker.address().as_array()),
-        Seed::from(&bump),
+        Seed::from(&bump_arr),
     ];
     let signer_seeds = Signer::from(&seeds[..]);
 
-    CreateAccount {
-        from: maker,
-        to: fundraiser,
-        space: Fundraiser::LEN as u64,
-        owner: program_id,
-        lamports: FUNDRAISER_RENT,
-    }
-    .invoke_signed(&[signer_seeds])?;
+    raw_cpi::raw_create_account_signed(
+        &maker,
+        &fundraiser,
+        FUNDRAISER_RENT,
+        Fundraiser::LEN as u64,
+        &PROGRAM_ADDRESS,
+        &[signer_seeds],
+    )?;
 
-    CreateAccount {
-        from: maker,
-        to: vault,
-        owner: &TOKEN_ID,
-        space: 165,
-        lamports: VAULT_RENT,
-    }
-    .invoke()?;
+    let fs_data = unsafe { fundraiser.borrow_unchecked_mut() };
+    let fs = unsafe { &mut *(fs_data.as_mut_ptr() as *mut Fundraiser) };
 
-    InitializeAccount3 {
-        account: vault,
-        mint,
-        owner: fundraiser.address(),
-    }
-    .invoke()?;
-
-    let fundraiser_data = unsafe { fundraiser.borrow_unchecked_mut() };
-    let fundraiser_state = Fundraiser::load_mut(fundraiser_data)?;
-
-    fundraiser_state.maker = *maker.address().as_array();
-    fundraiser_state.mint_to_raise = *mint.address().as_array();
-    fundraiser_state.amount_to_raise = data.amount_to_raise;
-    fundraiser_state.current_amount = 0;
-    fundraiser_state.time_started = Clock::get()?.unix_timestamp;
-    fundraiser_state.duration = data.duration;
-    fundraiser_state.bump = data.bump;
+    fs.maker = *maker.address().as_array();
+    fs.mint_to_raise = *mint.address().as_array();
+    fs.amount_to_raise = amount_to_raise;
+    fs.current_amount = 0;
+    fs.time_started = 0;
+    fs.duration = duration;
+    fs.bump = bump;
 
     Ok(())
 }

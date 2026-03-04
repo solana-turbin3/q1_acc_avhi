@@ -28,6 +28,11 @@ pub fn load_svm() -> (LiteSVM, Keypair) {
     let program_data = std::fs::read(so_path).expect("Failed to read program SO file");
     svm.add_program(program_id(), &program_data).unwrap();
 
+    let p_token_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("src/tests/fixtures/pinocchio_token_program.so");
+    let p_token_data = std::fs::read(p_token_path).expect("Failed to read pinocchio token SO");
+    svm.add_program(TOKEN_PROGRAM_ID, &p_token_data).unwrap();
+
     (svm, payer)
 }
 
@@ -47,7 +52,7 @@ pub struct InitializeSetup {
     pub maker: Keypair,
     pub mint: Pubkey,
     pub fundraiser_pda: Pubkey,
-    pub vault: Keypair,
+    pub vault: Pubkey,
     pub init_cu: u64,
 }
 
@@ -61,7 +66,12 @@ pub fn setup_initialize(amount_to_raise: u64, duration: u8) -> InitializeSetup {
         .unwrap();
 
     let (fundraiser_pda, bump) = fundraiser_pda(&maker.pubkey());
-    let vault = Keypair::new();
+
+    // Pre-create vault as ATA owned by fundraiser PDA (no vault CPI in program)
+    let vault = CreateAssociatedTokenAccount::new(&mut svm, &maker, &mint)
+        .owner(&fundraiser_pda)
+        .send()
+        .unwrap();
 
     let mut data = vec![0u8]; // discriminator 0 = initialize
     data.extend_from_slice(&amount_to_raise.to_le_bytes());
@@ -75,9 +85,7 @@ pub fn setup_initialize(amount_to_raise: u64, duration: u8) -> InitializeSetup {
             AccountMeta::new(maker.pubkey(), true),
             AccountMeta::new(fundraiser_pda, false),
             AccountMeta::new_readonly(mint, false),
-            AccountMeta::new(vault.pubkey(), true),
-            AccountMeta::new_readonly(solana_sdk_ids::system_program::ID, false),
-            AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(Pubkey::new_from_array([0u8; 32]), false), // system_program
         ],
         data,
     };
@@ -85,7 +93,7 @@ pub fn setup_initialize(amount_to_raise: u64, duration: u8) -> InitializeSetup {
     let msg = Message::new(&[ix], Some(&maker.pubkey()));
     let blockhash = svm.latest_blockhash();
     let tx = svm
-        .send_transaction(Transaction::new(&[&maker, &vault], msg, blockhash))
+        .send_transaction(Transaction::new(&[&maker], msg, blockhash))
         .unwrap();
 
     InitializeSetup {
@@ -98,23 +106,23 @@ pub fn setup_initialize(amount_to_raise: u64, duration: u8) -> InitializeSetup {
     }
 }
 
-pub struct ContributeSetup {
+pub struct CreateContributorSetup {
     pub svm: LiteSVM,
     pub maker: Keypair,
     pub contributor: Keypair,
     pub mint: Pubkey,
     pub fundraiser_pda: Pubkey,
-    pub vault: Keypair,
+    pub vault: Pubkey,
     pub contributor_ata: Pubkey,
     pub contributor_state_pda: Pubkey,
-    pub contribute_cu: u64,
+    pub create_contributor_cu: u64,
 }
 
-pub fn setup_contribute(
+pub fn setup_create_contributor(
     amount_to_raise: u64,
     duration: u8,
     contribute_amount: u64,
-) -> ContributeSetup {
+) -> CreateContributorSetup {
     let mut s = setup_initialize(amount_to_raise, duration);
 
     let contributor = Keypair::new();
@@ -139,22 +147,17 @@ pub fn setup_contribute(
 
     let (contributor_state_pda, bump) = contributor_pda(&s.fundraiser_pda, &contributor.pubkey());
 
-    let mut data = vec![1u8]; // discriminator 1 = contribute
-    data.extend_from_slice(&contribute_amount.to_le_bytes());
-    data.push(bump);
-    data.extend_from_slice(&[0u8; 7]);
+    // discriminator 1 = create_contributor; data[1] = bump; data[2..8] = padding
+    let mut data = vec![1u8, bump];
+    data.extend_from_slice(&[0u8; 6]);
 
     let ix = Instruction {
         program_id: program_id(),
         accounts: vec![
             AccountMeta::new(contributor.pubkey(), true),
-            AccountMeta::new(s.fundraiser_pda, false),
-            AccountMeta::new_readonly(s.mint, false),
-            AccountMeta::new(s.vault.pubkey(), false),
-            AccountMeta::new(contributor_ata, false),
+            AccountMeta::new_readonly(s.fundraiser_pda, false),
             AccountMeta::new(contributor_state_pda, false),
-            AccountMeta::new_readonly(solana_sdk_ids::system_program::ID, false),
-            AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+            AccountMeta::new_readonly(Pubkey::new_from_array([0u8; 32]), false), // system_program
         ],
         data,
     };
@@ -166,7 +169,7 @@ pub fn setup_contribute(
         .send_transaction(Transaction::new(&[&contributor], msg, blockhash))
         .unwrap();
 
-    ContributeSetup {
+    CreateContributorSetup {
         svm: s.svm,
         maker: s.maker,
         contributor,
@@ -175,6 +178,62 @@ pub fn setup_contribute(
         vault: s.vault,
         contributor_ata,
         contributor_state_pda,
+        create_contributor_cu: tx.compute_units_consumed,
+    }
+}
+
+pub struct ContributeSetup {
+    pub svm: LiteSVM,
+    pub maker: Keypair,
+    pub contributor: Keypair,
+    pub mint: Pubkey,
+    pub fundraiser_pda: Pubkey,
+    pub vault: Pubkey,
+    pub contributor_ata: Pubkey,
+    pub contributor_state_pda: Pubkey,
+    pub contribute_cu: u64,
+}
+
+pub fn setup_contribute(
+    amount_to_raise: u64,
+    duration: u8,
+    contribute_amount: u64,
+) -> ContributeSetup {
+    let mut s = setup_create_contributor(amount_to_raise, duration, contribute_amount);
+
+    // discriminator 2 = contribute; data[1..9] = amount
+    let mut data = vec![2u8];
+    data.extend_from_slice(&contribute_amount.to_le_bytes());
+
+    let ix = Instruction {
+        program_id: program_id(),
+        accounts: vec![
+            AccountMeta::new(s.contributor.pubkey(), true),
+            AccountMeta::new(s.fundraiser_pda, false),
+            AccountMeta::new(s.vault, false),
+            AccountMeta::new(s.contributor_ata, false),
+            AccountMeta::new(s.contributor_state_pda, false),
+            AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
+        ],
+        data,
+    };
+
+    let msg = Message::new(&[ix], Some(&s.contributor.pubkey()));
+    let blockhash = s.svm.latest_blockhash();
+    let tx = s
+        .svm
+        .send_transaction(Transaction::new(&[&s.contributor], msg, blockhash))
+        .unwrap();
+
+    ContributeSetup {
+        svm: s.svm,
+        maker: s.maker,
+        contributor: s.contributor,
+        mint: s.mint,
+        fundraiser_pda: s.fundraiser_pda,
+        vault: s.vault,
+        contributor_ata: s.contributor_ata,
+        contributor_state_pda: s.contributor_state_pda,
         contribute_cu: tx.compute_units_consumed,
     }
 }

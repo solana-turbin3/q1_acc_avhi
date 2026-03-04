@@ -21,11 +21,11 @@ fn test_checker() {
         accounts: vec![
             AccountMeta::new(s.maker.pubkey(), true),
             AccountMeta::new(s.fundraiser_pda, false),
-            AccountMeta::new(s.vault.pubkey(), false),
+            AccountMeta::new(s.vault, false),
             AccountMeta::new(maker_ata, false),
             AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
         ],
-        data: vec![2u8], // discriminator 2 = checker
+        data: vec![3u8], // discriminator 3 = checker
     };
 
     let msg = Message::new(&[ix], Some(&s.maker.pubkey()));
@@ -35,5 +35,5 @@ fn test_checker() {
         .send_transaction(Transaction::new(&[&s.maker], msg, blockhash))
         .unwrap();
 
-    println!("{:<12} | {:>6} CUs", "checker", tx.compute_units_consumed);
+    println!("{:<20} | {:>6} CUs", "checker", tx.compute_units_consumed);
 }

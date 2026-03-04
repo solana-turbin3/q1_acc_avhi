@@ -23,12 +23,12 @@ fn test_refund() {
         accounts: vec![
             AccountMeta::new(s.contributor.pubkey(), true),
             AccountMeta::new(s.fundraiser_pda, false),
-            AccountMeta::new(s.vault.pubkey(), false),
+            AccountMeta::new(s.vault, false),
             AccountMeta::new(s.contributor_ata, false),
             AccountMeta::new(s.contributor_state_pda, false),
             AccountMeta::new_readonly(TOKEN_PROGRAM_ID, false),
         ],
-        data: vec![3u8], // discriminator 3 = refund
+        data: vec![4u8], // discriminator 4 = refund
     };
 
     let msg = Message::new(&[ix], Some(&s.contributor.pubkey()));
@@ -38,5 +38,5 @@ fn test_refund() {
         .send_transaction(Transaction::new(&[&s.contributor], msg, blockhash))
         .unwrap();
 
-    println!("{:<12} | {:>6} CUs", "refund", tx.compute_units_consumed);
+    println!("{:<20} | {:>6} CUs", "refund", tx.compute_units_consumed);
 }

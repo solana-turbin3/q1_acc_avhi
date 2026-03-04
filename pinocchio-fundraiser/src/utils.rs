@@ -34,35 +34,5 @@ macro_rules! impl_load {
     };
 }
 
-macro_rules! check_zero {
-    (== $a:expr, $err:expr) => {
-        if $a == 0 {
-            return Err($err);
-        }
-    };
-    (!= $a:expr, $err:expr) => {
-        if $a != 0 {
-            return Err($err);
-        }
-    };
-}
-
-macro_rules! impl_load_ix {
-    ($t: ty) => {
-        impl $t {
-            #[allow(dead_code)]
-            pub fn load(data: &[u8]) -> Result<Self, pinocchio::error::ProgramError> {
-                if data.len() < core::mem::size_of::<$t>() {
-                    Err(pinocchio::error::ProgramError::InvalidInstructionData)
-                } else {
-                    Ok(unsafe { core::ptr::read_unaligned(data.as_ptr() as *const Self) })
-                }
-            }
-        }
-    };
-}
-
-pub(crate) use check_zero;
 pub(crate) use impl_len;
 pub(crate) use impl_load;
-pub(crate) use impl_load_ix;

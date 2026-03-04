@@ -1,7 +1,7 @@
 mod entrypoint;
 
-mod helper;
 mod instructions;
+mod raw_cpi;
 mod states;
 mod utils;
 
