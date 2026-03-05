@@ -16,4 +16,8 @@ pub enum StakingError {
     FreezePeriodNotElapsed,
     #[msg("Overflow")]
     Overflow,
+    #[msg("Invalid number")]
+    InvalidNumber,
+    #[msg("Already updated")]
+    AlreadyUpdated,
 }
